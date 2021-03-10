@@ -1,0 +1,25 @@
+import os
+from flask import Flask
+from config import Config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_bootstrap import Bootstrap
+from flask_googlemaps import GoogleMaps
+import logging
+from logging.handlers import SMTPHandler, RotatingFileHandler
+
+app = Flask(__name__)
+app.config.from_object(Config)
+app._static_folder = os.path.abspath("static/")
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+login = LoginManager(app)
+login.login_view = "login"
+bootstrap = Bootstrap(app)
+
+# Initialize the extension
+GoogleMaps(app)
+
+from app import routes, models, errors
+
