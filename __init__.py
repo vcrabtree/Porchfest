@@ -18,6 +18,7 @@ login = LoginManager(app)
 login.login_view = "login"
 bootstrap = Bootstrap(app)
 
+# ading a comment, hope this works
 # Initialize the extension
 GoogleMaps(app)
 
