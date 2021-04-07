@@ -175,26 +175,43 @@ def newEvent():
     return render_template('newEvent.html', title='newEvent', form=form)
 
 
-app.route('/populate_db')
+@app.route('/populate_db')
 def populate_db():
-    a1 = Artist(name='The Ithacans', genre="Indie", hometown="Ithaca, NY", twitter="https://twitter.com/ithacans",
-                instagram="https://instagram.com/ithacans", spotify="https://open.spotify.com/ithacans",
-                photo='img_avatar1.png')
-    a2 = Artist(name='The Binghamtons', genre="Dad Rock", hometown='Binghamton',
-                twitter="https://twitter.com/binghamptons", instagram="https://instagram.com/binghamptons",
-                photo='img_avatar1.png')
-    a3 = Artist(name="Stone Cold Miracle", genre="R&B", hometown="Ithaca, NY",
-                spotify="https://open.spotify.com/cold_miracle", photo='img_avatar1.png')
-    p1 = Porch(address="33 Fall Creek Street")
-    p2 = Porch(address="25 Utica Street")
-    p3 = Porch(address="47 Buffalo Street")
-    db.session.add_all([a1, a2, a3, p1, p2, p3])
-    e1 = Event(artist_id=1, porch_id=1, time="12:00-1:00")
-    e2 = Event(artist_id=2, porch_id=2, time="1:00-2:00")
-    e3 = Event(artist_id=3, porch_id=3, time="2:00-3:00")
-    db.session.add_all([e1, e2, e3])
+    flash("Populating database with Porchfest data")
+
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        print('Clear table {}'.format(table))
+        db.session.execute(table.delete())
     db.session.commit()
-    return "Database has been populated"
+    df = pd.read_csv('app/2019PerformerSchedule.csv', index_col=0, sep=',')
+    #add porches first
+    porches = df['Porch Address'].unique()
+    for i in range(porches.shape[0]):
+        locator = Nominatim(user_agent="myGeocoder")
+        location = locator.geocode(str(porches[i]) + ", Ithaca, New York")
+        porch = Porch(porches[i], location.latitude, location.longitude) #dummy long and lat for now
+        db.session.add(porch)
+        db.session.commit()
+    #Then artists
+    for i in range(df.shape[0]):
+        row = df.iloc[i]
+        artist = Band(row['Name'], row['Description'], 'test' + str(i), row['URL'])
+        db.session.add(artist)
+        db.session.commit()
+    #Then events
+    for i in range(df.shape[0]):
+        row = df.iloc[i]
+        artist = db.session.query(Band).filter_by(name = row['Name']).first()
+        porch = db.session.query(Porch).filter_by(address = row['Porch Address']).first()
+        timing = int(row['Assigned Timeslot'].split('-')[0])
+        if not timing == 12:
+            timing += 12
+        time = datetime(2019, 9, 22, timing)
+        event = Event(time, artist.id, porch.id)
+        db.session.add(event)
+        db.session.commit()
+    return render_template('index.html', title='Home')    return "Database has been populated"
 
 @app.route('/reset_db')
 def reset_db():
