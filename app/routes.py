@@ -5,10 +5,12 @@ from werkzeug.utils import secure_filename
 
 from app import app, db
 from app.models import *
-from app.forms import *
+# from app.forms import *
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from flask_googlemaps import *
+import pandas as pd
+from geopy.geocoders import Nominatim
 
 
 @app.route('/')
@@ -184,25 +186,26 @@ def populate_db():
         print('Clear table {}'.format(table))
         db.session.execute(table.delete())
     db.session.commit()
-    df = pd.read_csv('app/2019PerformerSchedule.csv', index_col=0, sep=',')
+    df = pd.read_csv('app/IthacaPorchfest2019PerformerSchedule.csv', index_col=0, sep=',')
     #add porches first
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
         locator = Nominatim(user_agent="myGeocoder")
         location = locator.geocode(str(porches[i]) + ", Ithaca, New York")
-        porch = Porch(porches[i], location.latitude, location.longitude) #dummy long and lat for now
+        porch = Porch(porches[i])
+        #dummy long and lat for now (location.latitude, location.longitude)
         db.session.add(porch)
         db.session.commit()
     #Then artists
     for i in range(df.shape[0]):
         row = df.iloc[i]
-        artist = Band(row['Name'], row['Description'], 'test' + str(i), row['URL'])
+        artist = Artist(row['Name'], row['Description'], 'test' + str(i), row['URL'])
         db.session.add(artist)
         db.session.commit()
     #Then events
     for i in range(df.shape[0]):
         row = df.iloc[i]
-        artist = db.session.query(Band).filter_by(name = row['Name']).first()
+        artist = db.session.query(Artist).filter_by(name = row['Name']).first()
         porch = db.session.query(Porch).filter_by(address = row['Porch Address']).first()
         timing = int(row['Assigned Timeslot'].split('-')[0])
         if not timing == 12:
@@ -211,7 +214,7 @@ def populate_db():
         event = Event(time, artist.id, porch.id)
         db.session.add(event)
         db.session.commit()
-    return render_template('index.html', title='Home')    return "Database has been populated"
+    return "Database has been populated"
 
 @app.route('/reset_db')
 def reset_db():
