@@ -1,0 +1,92 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    {% if title %}{{ title }} - Porchfest{% else %}Welcome to the site!{% endif %}
+{% endblock %}
+
+{% block navbar %}
+    <h1 class="title"><a href="{{ url_for('index') }}"><img class="" width="30%" src="{{url_for('static', filename='banner.png')}}"></a></h1>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+{#        <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>#}
+        <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav nav-pills mx-auto" style="text-align:center;">
+          {% if current_user.is_anonymous %}
+          <li class="nav-item {{ 'active' if active_page == 'about' else '' }}">
+              <a class="nav-link" href="{{ url_for('about') }}">About</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'artists' else '' }}">
+              <a class="nav-link" href="{{ url_for('artists') }}">Artists</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'schedule' else '' }}">
+              <a class="nav-link" href="{{ url_for('schedule') }}">Schedule</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'map' else '' }}">
+              <a class="nav-link" href="{{ url_for('map') }}">Map</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'plan' else '' }}">
+              <a class="nav-link" href="{{ url_for('plan') }}">Plan Your Day</a>
+          </li>
+        {% else %}
+          <li class="nav-item {{ 'active' if active_page == 'about' else '' }}">
+              <a class="nav-link" href="{{ url_for('about') }}">About</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'artists' else '' }}">
+              <a class="nav-link" href="{{ url_for('artists') }}">Artists</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'schedule' else '' }}">
+              <a class="nav-link" href="{{ url_for('schedule') }}">Schedule</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'map' else '' }}">
+              <a class="nav-link" href="{{ url_for('map') }}">Map</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'plan' else '' }}">
+              <a class="nav-link" href="{{ url_for('plan') }}">Plan Your Day</a>
+          </li>
+              <li class="nav-item {{ 'active' if active_page == 'newEvent' else '' }}">
+              <a class="nav-link" href="{{ url_for('newEvent') }}">New Event</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'newArtist' else '' }}">
+              <a class="nav-link" href="{{ url_for('newArtist') }}">New Artist</a>
+          </li>
+            <li class="nav-item {{ 'active' if active_page == 'newPorch' else '' }}">
+              <a class="nav-link" href="{{ url_for('newPorch') }}">New Porch</a>
+          </li>
+            {% endif %}
+        </ul>
+
+          <ul class="navbar-nav">
+          {% if current_user.is_anonymous %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            {% else %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+          {% endif %}
+        </ul>
+      </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-info" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {# application content needs to be provided in the app_content block #}
+        {% block app_content %}
+
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% block styles %}
+    {{super()}}
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
