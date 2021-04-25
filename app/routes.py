@@ -189,13 +189,13 @@ def populate_db():
     #Add porches
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
-        porch = Porch(porches[i])
+        porch = Porch(address=porches[i])
         db.session.add(porch)
         db.session.commit()
     #Add artists
     for i in range(df.shape[0]):
         row = df.iloc[i]
-        artist = Artist(row['Name'], row['Description'], 'test' + str(i), row['URL'])
+        artist = Artist(name=row['Name'], about=row['Description'])
         db.session.add(artist)
         db.session.commit()
     #Add events
@@ -207,7 +207,7 @@ def populate_db():
         if not timing == 12:
             timing += 12
         time = datetime(2019, 9, 22, timing)
-        event = Event(time, artist.id, porch.id)
+        event = Event(time=time, artist_id=artist.id, porch_id=porch.id)
         db.session.add(event)
         db.session.commit()
     return "Database has been populated"
