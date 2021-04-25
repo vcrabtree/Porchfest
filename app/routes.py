@@ -186,22 +186,19 @@ def populate_db():
         db.session.execute(table.delete())
     db.session.commit()
     df = pd.read_csv('app/IthacaPorchfest2019PerformerSchedule.csv', index_col=0, sep=',')
-    #add porches first
+    #Add porches
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
-        locator = Nominatim(user_agent="myGeocoder")
-        location = locator.geocode(str(porches[i]) + ", Ithaca, New York")
         porch = Porch(porches[i])
-        #dummy long and lat for now (location.latitude, location.longitude)
         db.session.add(porch)
         db.session.commit()
-    #Then artists
+    #Add artists
     for i in range(df.shape[0]):
         row = df.iloc[i]
         artist = Artist(row['Name'], row['Description'], 'test' + str(i), row['URL'])
         db.session.add(artist)
         db.session.commit()
-    #Then events
+    #Add events
     for i in range(df.shape[0]):
         row = df.iloc[i]
         artist = db.session.query(Artist).filter_by(name = row['Name']).first()
