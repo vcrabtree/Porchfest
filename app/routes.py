@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 
 from app import app, db
 from app.models import *
+from flask import jsonify
 # from app.forms import *
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
@@ -17,8 +18,7 @@ from geopy.geocoders import Nominatim
 @app.route('/index')
 def index():
     artists_list = Artist.query.all()
-    return \
-        render_template('index.html', title='Home', artists=artists_list)
+    return jsonify({"artists": artist_list})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -35,8 +35,7 @@ def login():
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
-
+    return jsonify({"status": True})
 
 @app.route('/logout')
 def logout():
@@ -56,40 +55,35 @@ def register():
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
-
+    return jsonify({"status": True})
 
 @app.route('/artist/<name>')
 def artist(name):
     info = Artist.query.filter_by(name=name).first()
-    return render_template('artist.html', title="Artist Information", info=info)
-
+    return jsonify(info)
 
 @app.route('/artists')
 def artists():
     artists_list = Artist.query.all()
-    return render_template('Artists.html', title='FavArtists', artists=artists_list)
-
+    return jsonify({"artists": artists_list})
 
 @app.route('/schedule')
 def schedule():
     events_list = Event.query.all()
-    return render_template('schedule.html', title='Schedule', events=events_list)
-
+    return jsonify({"events": events_list})
 
 @app.route('/map')
 def map():
-        return render_template('map.html', title='Map')
-
+    return jsonify({"map": "TODO"})
 
 @app.route('/plan')
 def plan():
-    return render_template('plan.html', title='Plan')
+    return jsonify({"plan": "TODO"})
 
 
 @app.route('/about')
 def about():
-    return render_template('about.html', title='About')
+    return jsonify({"about": "TODO"})
 
 
 @app.route('/newArtist', methods=['GET', 'POST'])
@@ -124,8 +118,7 @@ def newArtist():
             db.session.commit()
 
             return redirect(url_for('artists'))
-    return render_template('newArtist.html', title="Create Artists", form=form)
-
+    return jsonify({"status": True})
 
 @app.route('/newPorch', methods=['GET', 'POST'])
 def newPorch():
@@ -141,8 +134,7 @@ def newPorch():
             db.session.add(w)
             db.session.commit()
             return redirect(url_for('index'))
-    return render_template('newPorch.html', title="Create Porches", form=form)
-
+    return jsonify({"status": True})
 
 @app.route('/newEvent', methods=['GET', 'POST'])
 def newEvent():
@@ -173,8 +165,7 @@ def newEvent():
             db.session.add(x)
             db.session.commit()
             return redirect(url_for('index'))
-    return render_template('newEvent.html', title='newEvent', form=form)
-
+    return jsonify({"status": True})
 
 @app.route('/populate_db')
 def populate_db():
@@ -210,7 +201,7 @@ def populate_db():
         event = Event(time=time, artist_id=artist.id, porch_id=porch.id)
         db.session.add(event)
         db.session.commit()
-    return "Database has been populated"
+    return jsonify({"status": True})
 
 @app.route('/reset_db')
 def reset_db():
@@ -222,4 +213,4 @@ def reset_db():
        db.session.execute(table.delete())
    db.session.commit()
    populate_db()
-   return redirect(url_for('index'))
+   return jsonify({"status": True})
