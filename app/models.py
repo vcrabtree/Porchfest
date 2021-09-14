@@ -25,6 +25,17 @@ class User(UserMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
+class UserToArtist(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), index=True)
+    favorite = db.Column(db.Boolean, default=True)
+
+
+    user = db.relationship("User", backref="artists")
+    artist = db.relationship("Artist", backref="users")
+
+
 
 class Artist(db.Model):
     name = db.Column(db.String(64), index=True, unique=True)
