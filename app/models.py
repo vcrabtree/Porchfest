@@ -31,17 +31,21 @@ class UserToArtist(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), index=True)
     favorite = db.Column(db.Boolean, default=True)
 
-
     user = db.relationship("User", backref="artists")
     artist = db.relationship("Artist", backref="users")
 
+class ArtistToGenre(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), index=True)
+    genre_id = db.Column(db.Integer, db.ForeignKey('genre.id'), index=True)
 
+    artist = db.relationship("Artist", backref="genres")
+    genre = db.relationship("Genre", backref="artists")
 
 class Artist(db.Model):
     name = db.Column(db.String(64), index=True, unique=True)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     hometown = db.Column(db.String(64), index=True)
-    genre = db.Column(db.String(64), index=True)
     about = db.Column(db.String(128))
     photo = db.Column(db.String(64))
     twitter = db.Column(db.String(128))
@@ -51,14 +55,18 @@ class Artist(db.Model):
     #content = db.Column(db.String(128), unique=True)
     events = db.relationship('Event', backref='artist', lazy='dynamic')
 
-
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
     events = db.relationship('Event', backref='porch', lazy='dynamic')
 
 class Event(db.Model):
-    id= db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'))
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))
     time = db.Column(db.String(64))
+
+class Genre(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    genre = genre = db.Column(db.String(64), index=True, unique=True)
+
