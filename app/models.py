@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
+
 class UserToArtist(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
@@ -34,6 +35,7 @@ class UserToArtist(db.Model):
     user = db.relationship("User", backref="artists")
     artist = db.relationship("Artist", backref="users")
 
+
 class ArtistToGenre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), index=True)
@@ -41,6 +43,7 @@ class ArtistToGenre(db.Model):
 
     artist = db.relationship("Artist", backref="genres")
     genre = db.relationship("Genre", backref="artists")
+
 
 class Artist(db.Model):
     name = db.Column(db.String(64), index=True, unique=True)
@@ -52,19 +55,22 @@ class Artist(db.Model):
     spotify = db.Column(db.String(128))
     instagram = db.Column(db.String(128))
     merch = db.Column(db.String(128), unique=True)
-    #content = db.Column(db.String(128), unique=True)
+    # content = db.Column(db.String(128), unique=True)
     events = db.relationship('Event', backref='artist', lazy='dynamic')
+
 
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
     events = db.relationship('Event', backref='porch', lazy='dynamic')
 
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'))
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))
     time = db.Column(db.String(64))
+
 
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

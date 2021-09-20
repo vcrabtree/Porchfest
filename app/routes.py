@@ -7,7 +7,6 @@ from app import app, db
 from app.models import *
 from app.forms import *
 from flask import jsonify
-# from app.forms import *
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 import pandas as pd
@@ -200,8 +199,8 @@ def populate_db():
     # Add events
     for i in range(df.shape[0]):
         row = df.iloc[i]
-        artist = db.session.query(Artist).filter_by(name = row['Name']).first()
-        porch = db.session.query(Porch).filter_by(address = row['Porch Address']).first()
+        artist = db.session.query(Artist).filter_by(name=row['Name']).first()
+        porch = db.session.query(Porch).filter_by(address=row['Porch Address']).first()
         timing = int(row['Assigned Timeslot'].split('-')[0])
         if not timing == 12:
             timing += 12
