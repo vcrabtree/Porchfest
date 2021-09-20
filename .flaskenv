@@ -1,0 +1,2 @@
+FLASK_APP=porchfest.py
+FLASK_ENV=development
