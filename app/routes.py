@@ -5,11 +5,11 @@ from werkzeug.utils import secure_filename
 
 from app import app, db
 from app.models import *
+from app.forms import *
 from flask import jsonify
 # from app.forms import *
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
-from flask_googlemaps import *
 import pandas as pd
 from geopy.geocoders import Nominatim
 
@@ -18,7 +18,8 @@ from geopy.geocoders import Nominatim
 @app.route('/index')
 def index():
     artists_list = Artist.query.all()
-    return jsonify({"artists": artist_list})
+    return jsonify({"artists": artists_list})
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -36,6 +37,7 @@ def login():
             next_page = url_for('index')
         return redirect(next_page)
     return jsonify({"status": True})
+
 
 @app.route('/logout')
 def logout():
@@ -57,24 +59,29 @@ def register():
         return redirect(url_for('login'))
     return jsonify({"status": True})
 
+
 @app.route('/artist/<name>')
 def artist(name):
     info = Artist.query.filter_by(name=name).first()
     return jsonify(info)
+
 
 @app.route('/artists')
 def artists():
     artists_list = Artist.query.all()
     return jsonify({"artists": artists_list})
 
+
 @app.route('/schedule')
 def schedule():
     events_list = Event.query.all()
     return jsonify({"events": events_list})
 
+
 @app.route('/map')
-def map():
+def location():
     return jsonify({"map": "TODO"})
+
 
 @app.route('/plan')
 def plan():
@@ -88,7 +95,6 @@ def about():
 
 @app.route('/newArtist', methods=['GET', 'POST'])
 def newArtist():
-
     form = CreateArtistForm()
 
     if form.validate_on_submit():
@@ -120,9 +126,9 @@ def newArtist():
             return redirect(url_for('artists'))
     return jsonify({"status": True})
 
+
 @app.route('/newPorch', methods=['GET', 'POST'])
 def newPorch():
-
     form = CreatePorchForm()
     if form.validate_on_submit():
         v= Porch.query.filter_by(address=form.address.data).first()
@@ -135,6 +141,7 @@ def newPorch():
             db.session.commit()
             return redirect(url_for('index'))
     return jsonify({"status": True})
+
 
 @app.route('/newEvent', methods=['GET', 'POST'])
 def newEvent():
@@ -167,6 +174,7 @@ def newEvent():
             return redirect(url_for('index'))
     return jsonify({"status": True})
 
+
 @app.route('/populate_db')
 def populate_db():
     flash("Populating database with Porchfest data")
@@ -177,19 +185,19 @@ def populate_db():
         db.session.execute(table.delete())
     db.session.commit()
     df = pd.read_csv('app/IthacaPorchfest2019PerformerSchedule.csv', index_col=0, sep=',')
-    #Add porches
+    # Add porches
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
         porch = Porch(address=porches[i])
         db.session.add(porch)
         db.session.commit()
-    #Add artists
+    # Add artists
     for i in range(df.shape[0]):
         row = df.iloc[i]
         artist = Artist(name=row['Name'], about=row['Description'])
         db.session.add(artist)
         db.session.commit()
-    #Add events
+    # Add events
     for i in range(df.shape[0]):
         row = df.iloc[i]
         artist = db.session.query(Artist).filter_by(name = row['Name']).first()
@@ -203,14 +211,15 @@ def populate_db():
         db.session.commit()
     return jsonify({"status": True})
 
+
 @app.route('/reset_db')
 def reset_db():
-   flash("Resetting database: deleting old data and repopulating with dummy data")
-   # clear all data from all tables
-   meta = db.metadata
-   for table in reversed(meta.sorted_tables):
-       print('Clear table {}'.format(table))
-       db.session.execute(table.delete())
-   db.session.commit()
-   populate_db()
-   return jsonify({"status": True})
+    flash("Resetting database: deleting old data and repopulating with dummy data")
+    # clear all data from all tables
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        print('Clear table {}'.format(table))
+        db.session.execute(table.delete())
+    db.session.commit()
+    populate_db()
+    return jsonify({"status": True})
