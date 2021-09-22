@@ -10,6 +10,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    created = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -24,6 +26,12 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+
+class PorchfestTable(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(128), index=True)
+    state = db.Column(db.String(128))
 
 
 class UserToArtist(db.Model):
@@ -69,10 +77,10 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'))
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))
-    time = db.Column(db.String(64))
+    time = db.Column(db.DateTime)
 
 
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    genre = genre = db.Column(db.String(64), index=True, unique=True)
+    genre  = db.Column(db.String(64), index=True, unique=True)
 
