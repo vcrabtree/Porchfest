@@ -32,6 +32,7 @@ class PorchfestTable(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(128), index=True)
     state = db.Column(db.String(128))
+    time = db.Column(db.DateTime)
 
 
 class UserToArtist(db.Model):
