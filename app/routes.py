@@ -14,8 +14,9 @@ from app.models import *
 @app.route('/')
 @app.route('/index')
 def index():
-    artists_list = Artist.query.all()
-    return jsonify({"artists": artists_list})
+    # artists_list = Artist.query.all()
+    # return jsonify({"artists": artists_list})
+    return jsonify({"status": True})
 
 
 
