@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
-from flask_googlemaps import GoogleMaps
+# from flask_googlemaps import GoogleMaps
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 
@@ -20,7 +20,7 @@ bootstrap = Bootstrap(app)
 
 # ading a comment, hope this works
 # Initialize the extension
-GoogleMaps(app)
+# GoogleMaps(app)
 
 from app import routes, models, errors
 
