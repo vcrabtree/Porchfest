@@ -1,16 +1,14 @@
 import os
 
-from flask import render_template, flash, redirect, url_for, request
-from werkzeug.utils import secure_filename
-
-from app import app, db
-from app.models import *
-from app.forms import *
-from flask import jsonify
-from flask_login import login_user, logout_user, current_user, login_required
-from werkzeug.urls import url_parse
 import pandas as pd
-from geopy.geocoders import Nominatim
+from flask import flash, redirect, url_for, request
+from flask import jsonify
+from flask_login import login_user, logout_user, current_user
+from werkzeug.urls import url_parse
+
+from app import app
+from app.forms import *
+from app.models import *
 
 
 @app.route('/')
@@ -18,6 +16,7 @@ from geopy.geocoders import Nominatim
 def index():
     artists_list = Artist.query.all()
     return jsonify({"artists": artists_list})
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -77,7 +76,7 @@ def schedule():
     return jsonify({"events": events_list})
 
 
-@app.route('/map')
+@app.route('/location')
 def location():
     return jsonify({"map": "TODO"})
 
