@@ -183,7 +183,7 @@ def populate_db():
         print('Clear table {}'.format(table))
         db.session.execute(table.delete())
     db.session.commit()
-    df = pd.read_csv('data/IthacaPorchfest2019PerformerSchedule.csv', index_col=0, sep=',')
+    df = pd.read_csv('data/2019PerformerSchedule.csv', index_col=0, sep=',')
     # Add porches
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
