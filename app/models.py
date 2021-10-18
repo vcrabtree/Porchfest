@@ -55,10 +55,10 @@ class ArtistToGenre(db.Model):
 
 
 class Artist(db.Model):
-    name = db.Column(db.String(64), index=True, unique=True)
+    name = db.Column(db.String(128), index=True, unique=True)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     hometown = db.Column(db.String(64), index=True)
-    about = db.Column(db.String(128))
+    about = db.Column(db.String(255))
     photo = db.Column(db.String(64))
     twitter = db.Column(db.String(128))
     spotify = db.Column(db.String(128))
