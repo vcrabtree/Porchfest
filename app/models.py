@@ -67,6 +67,21 @@ class Artist(db.Model):
     # content = db.Column(db.String(128), unique=True)
     events = db.relationship('Event', backref='artist', lazy='dynamic')
 
+    def to_dict(self):
+        data = {
+            'name': self.name,
+            'id': self.id,
+            'hometown': self.hometown,
+            'about': self.about,
+            'photo': self.photo,
+            'twitter': self.twitter,
+            'spotify': self.spotify,
+            'instagram': self.instagram,
+            'merch': self.merch,
+            'events': self.events
+        }
+        return data
+
 
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
