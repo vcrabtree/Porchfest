@@ -78,7 +78,7 @@ class Artist(db.Model):
             'spotify': self.spotify,
             'instagram': self.instagram,
             'merch': self.merch,
-            'events': self.events
+            # 'events': self.events
         }
         return data
 
