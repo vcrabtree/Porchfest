@@ -38,6 +38,8 @@ nosetests.xml
 .pydevproject
 
 venv
+migrations
 app.db
 porchfest.log*
 .env
+.idea
