@@ -1,4 +1,4 @@
-app/IthacaPorchfest2019PerformerSchedule.csv
+data/2019PerformerSchedule.csv
 
 *.py[cod]
 
@@ -40,3 +40,4 @@ nosetests.xml
 venv
 app.db
 porchfest.log*
+.env
