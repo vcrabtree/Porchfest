@@ -1,4 +1,6 @@
 from flask_wtf.file import FileField
+from slugify import slugify
+
 from app import db, login
 from flask_login import UserMixin
 from datetime import datetime
@@ -64,6 +66,7 @@ class Artist(db.Model):
     spotify = db.Column(db.String(128))
     instagram = db.Column(db.String(128))
     merch = db.Column(db.String(128), unique=True)
+    url_slug = db.Column(db.String(128), index=True, unique=True)
     # content = db.Column(db.String(128), unique=True)
     events = db.relationship('Event', backref='artist', lazy='dynamic')
 
@@ -82,6 +85,30 @@ class Artist(db.Model):
         }
         return data
 
+    def __init__(self, **kwargs):
+        super(Artist, self).__init__(**kwargs)
+        self.slug_artist()
+
+
+    def slug_artist(self):
+        '''
+        Takes an artist, generates a url_slug and commits to db
+        :param artist: an Artist object from the Artist table
+        :return: None (but commits to Artist.url_slug)
+        '''
+        slug_base = slugify(self.name)
+
+        # ensure the slug is unique
+        slug = slug_base[:120]
+        index = 2
+        while Artist.query.filter(Artist.url_slug == slug).count() != 0:
+            slug = slug_base + "-" + str(index)
+            index = index + 1
+
+        # commit unique slug to db
+        self.url_slug = slug
+        db.session.add(self)
+        db.session.commit()
 
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -23,7 +23,15 @@ def index():
     return jsonify(artists_list)
     # return jsonify({ "name": "Post Malone", "id": 7297, "hometown": "Grapevine, TX", "about": "Malone was born on July 4, 1995 in Syracuse, New York and moved to Grapevine, Texas at the age of 10. He started playing guitar at the age of 14 because of popular video game Guitar Hero . He later auditioned for band Crowd the Empire in 2010 but was rejected after his guitar string broke during the audition.", "photo": "https://i.scdn.co/image/93fec27f9aac86526b9010e882037afbda4e3d5f", "twitter": "https://twitter.com/postmalone", "spotify": "https://open.spotify.com/artist/246dkjvS1zLTtiykXe5h60", "instagram": "https://www.instagram.com/postmalone/", "merch": "https://shop.postmalone.com" })
 
-
+    @bp.route('/artist/<string:slug>', methods=['GET'])
+    def get_slug_artist(slug):
+        # user = User.query.filter_by(
+        #     api_token=request.headers.environ["HTTP_AUTHORIZATION"].replace("Bearer ", "")).first()
+        # if user is not None:
+        #     g.current_user = user
+        data = Artist.query.filter_by(url_slug=slug).first_or_404()
+        result = {"artist": data.to_dict(simplified=False)}
+        return jsonify(result)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
