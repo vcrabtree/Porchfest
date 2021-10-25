@@ -68,7 +68,7 @@ class Artist(db.Model):
     merch = db.Column(db.String(128), unique=True)
     url_slug = db.Column(db.String(128), index=True, unique=True)
     # content = db.Column(db.String(128), unique=True)
-    events = db.relationship('Event', backref='artist', lazy='dynamic')
+    #events = db.relationship('Event', backref='artist', lazy='dynamic')
 
     def to_dict(self):
         data = {
@@ -113,10 +113,10 @@ class Artist(db.Model):
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
-    events = db.relationship('Event', backref='porch', lazy='dynamic')
+    #events = db.relationship('Event', backref='porch', lazy='dynamic')
 
 
-class Event(db.Model):
+class ArtistToPorch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'))
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))

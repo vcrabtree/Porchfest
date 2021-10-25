@@ -218,7 +218,7 @@ def populate_db():
         if not timing == 12:
             timing += 12
         time = datetime(2019, 9, 22, timing)
-        event = Event(time=time, artist_id=artist.id, porch_id=porch.id)
+        event = ArtistToPorch(time=time, artist_id=artist.id, porch_id=porch.id)
         db.session.add(event)
         db.session.commit()
     return jsonify({"status": True})
