@@ -81,8 +81,14 @@ class Artist(db.Model):
             'spotify': self.spotify,
             'instagram': self.instagram,
             'merch': self.merch,
-            # 'events': self.events
         }
+        artist_events = []
+        events = Porch.query.join(ArtistToPorch)\
+                .filter(ArtistToPorch.artist_id == self.id)
+        for event in events:
+            artist_events.append(event.to_dict())
+        data['events'] = artist_events
+
         return data
 
     def __init__(self, **kwargs):
@@ -115,6 +121,12 @@ class Porch(db.Model):
     address = db.Column(db.String(64), index=True)
     #events = db.relationship('Event', backref='porch', lazy='dynamic')
 
+    def to_dict(self, simplified=True):
+        data = {
+            'id': self.id,
+            'address': self.address,  # TODO add added column to database
+        }
+        return data
 
 class ArtistToPorch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
