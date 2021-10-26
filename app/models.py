@@ -68,7 +68,7 @@ class Artist(db.Model):
     merch = db.Column(db.String(128), unique=True)
     url_slug = db.Column(db.String(128), index=True, unique=True)
     # content = db.Column(db.String(128), unique=True)
-    #events = db.relationship('Event', backref='artist', lazy='dynamic')
+    # events = db.relationship('Event', backref='artist', lazy='dynamic')
 
     def to_dict(self):
         data = {
@@ -95,7 +95,6 @@ class Artist(db.Model):
         super(Artist, self).__init__(**kwargs)
         self.slug_artist()
 
-
     def slug_artist(self):
         '''
         Takes an artist, generates a url_slug and commits to db
@@ -116,6 +115,7 @@ class Artist(db.Model):
         db.session.add(self)
         db.session.commit()
 
+
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
@@ -128,14 +128,28 @@ class Porch(db.Model):
         }
         return data
 
+
 class ArtistToPorch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'))
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))
     time = db.Column(db.DateTime)
 
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'time': self.time
+        }
+
+        artist = Artist.query.filter(Artist.id == self.artist_id).first()
+        data['artist'] = artist.to_dict()
+        porch = Porch.query.filter(Porch.id == self.porch_id).first()
+        data['porch'] = porch.to_dict()
+
+        return data
+
 
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    genre  = db.Column(db.String(64), index=True, unique=True)
+    genre = db.Column(db.String(64), index=True, unique=True)
 
