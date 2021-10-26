@@ -135,6 +135,19 @@ class ArtistToPorch(db.Model):
     porch_id = db.Column(db.Integer, db.ForeignKey('porch.id'))
     time = db.Column(db.DateTime)
 
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'time': self.time
+        }
+
+        artist = Artist.query.filter(Artist.id == self.artist_id).first()
+        data['artist'] = artist.to_dict()
+        porch = Porch.query.filter(Porch.id == self.porch_id).first()
+        data['porch'] = porch.to_dict()
+
+        return data
+
 
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

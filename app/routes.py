@@ -68,22 +68,22 @@ def register():
     return jsonify({"status": True})
 
 
-@app.route('/artist/<name>')
-def artist(name):
-    info = Artist.query.filter_by(name=name).first()
-    return jsonify(info)
-
-
 @app.route('/artists')
 def artists():
-    artists_list = Artist.query.all()
-    return jsonify({"artists": artists_list})
+    all_artists = Artist.query.all()
+    artists_list = []
+    for artist in all_artists:
+        artists_list.append(artist.to_dict())
+    return jsonify(artists_list)
 
 
 @app.route('/schedule')
 def schedule():
-    events_list = ArtistToPorch.query.all()
-    return jsonify({"events": events_list})
+    all_events = ArtistToPorch.query.all()
+    events_list = []
+    for event in all_events:
+        events_list.append(event.to_dict())
+    return jsonify(events_list)
 
 
 @app.route('/location')
