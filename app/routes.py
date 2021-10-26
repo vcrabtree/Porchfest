@@ -82,7 +82,7 @@ def artists():
 
 @app.route('/schedule')
 def schedule():
-    events_list = Event.query.all()
+    events_list = ArtistToPorch.query.all()
     return jsonify({"events": events_list})
 
 
@@ -165,17 +165,17 @@ def newEvent():
         a = Artist.query.filter_by(id=form.artist.data).first()
         p = Porch.query.filter_by(id=form.porch.data).first()
         for j in performers:
-            if Event.query.filter_by(artist_id=j[0], porch_id=p.id, time=form.time.data).first():
+            if ArtistToPorch.query.filter_by(artist_id=j[0], porch_id=p.id, time=form.time.data).first():
                 flash('An artist is already playing this porch at this time')
                 duplicate = True
 
         for k in locations:
-            if Event.query.filter_by(artist_id=a.id, porch_id=k[0], time=form.time.data).first():
+            if ArtistToPorch.query.filter_by(artist_id=a.id, porch_id=k[0], time=form.time.data).first():
                 flash('This artist is already playing at this time')
                 duplicate = True
 
         if not duplicate:
-            x = Event(time=form.time.data, porch_id=form.porch.data, artist_id=form.artist.data)
+            x = ArtistToPorch(time=form.time.data, porch_id=form.porch.data, artist_id=form.artist.data)
             flash('New Event Created!')
             db.session.add(x)
             db.session.commit()
