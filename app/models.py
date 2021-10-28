@@ -88,7 +88,7 @@ class Artist(db.Model):
         for event in events:
             artist_events.append(event.to_dict())
         data['events'] = artist_events
-
+        data['genre'] = ["Rock", "Pop Music", "Jazz", "Heavy Metal"]
         return data
 
     def __init__(self, **kwargs):
