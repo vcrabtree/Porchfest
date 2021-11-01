@@ -145,7 +145,7 @@ def newArtist():
 def newPorch():
     form = CreatePorchForm()
     if form.validate_on_submit():
-        v= Porch.query.filter_by(address=form.address.data).first()
+        v = Porch.query.filter_by(address=form.address.data).first()
         if v is not None:
             flash('Porch already exists')
         else:
@@ -237,3 +237,80 @@ def reset_db():
     db.session.commit()
     populate_db()
     return jsonify({"status": True})
+
+
+@app.route('/artist_info_all_add')
+def add_five_artist():
+    #Clear the current tables of data 
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        print('Clear table {}'.format(table))
+        db.session.execute(table.delete())
+    db.session.commit()
+
+    flash("Adding five artists with all data to the database...")
+
+    porches = ['105 Farm St', '106 2nd St', '130 Linn St', '202 E Falls St', '204 E Yates St']
+    for i in range(5):
+        porch = Porch(address=porches[i])
+        db.session.add(porch)
+        db.session.commit()
+    artist_name = ["BTS", "Taylor Swift", "Drake", "The Weeknd", "Billie Eilish"]
+    hometown = ["Seoul, South Korea", "West Reading, Pennsylvania","Toronto, Ontario, Canada", "Toronto, Ontario, Canada", "Los Angeles, California"]
+    about = ["BTS, also known as the Bangtan Boys, is a South Korean boy band that was formed in 2010 and debuted in 2013 under Big Hit Entertainment.",
+             "Taylor Alison Swift is an American singer-songwriter. Her narrative songwriting, which is often inspired by her personal life, has received widespread media coverage and critical praise.",
+             "Aubrey Drake Graham is a Canadian rapper, singer, songwriter, and actor. ",
+             "Abel Makkonen Tesfaye, known professionally as the Weeknd, is a Canadian singer, songwriter, and record producer.",
+             "Billie Eilish Pirate Baird O'Connell is an American singer and songwriter."
+             ]
+    photo_url = ["https://upload.wikimedia.org/wikipedia/commons/4/4f/BTS_for_Dispatch_White_Day_Special%2C_27_February_2019_01.jpg",
+             "https://variety.com/wp-content/uploads/2020/01/taylor-swift-variety-cover-5-16x9-1000.jpg?w=681&h=383&crop=1",
+             "https://media.pitchfork.com/photos/612903e10a693361be8082cb/16:9/w_2480,h_1395,c_limit/Drake.jpg",
+             "https://akns-images.eonline.com/eol_images/Entire_Site/2021330/rs_634x1024-210430163026-634-the-weeknd.jpg?fit=around%7C634:1024&output-quality=90&crop=634:1024;center,top",
+             "https://media.allure.com/photos/605247e1bddfa641546fa160/1:1/w_2264,h_2264,c_limit/billie%20eilish.jpg"
+            ]
+    twitter_url = ["https://twitter.com/bts_bighit?lang=en",
+                   "https://twitter.com/taylorswift13?lang=en",
+                   "https://twitter.com/drake",
+                   "https://twitter.com/theweeknd",
+                   "https://twitter.com/billieeilish"
+            ]
+    spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
+               "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+                "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
+                 "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ",
+                 "https://open.spotify.com/artist/6qqNVTkY8uBg9cP3Jd7DAH"
+            ]
+    instagram_url = ["https://www.instagram.com/bts.bighitofficial/?hl=en",
+                     "https://www.instagram.com/taylorswift/",
+                     "https://www.instagram.com/champagnepapi/",
+                     "https://www.instagram.com/theweeknd/",
+                     "https://www.instagram.com/billieeilish/?hl=en"
+            ]
+    merch_url = ["https://btsmerchshop.org/",
+                 "https://www.taylorswift.com/",
+                 "https://drakerelated.com/",
+                 "https://www.theweeknd.com/",
+                "https://store.billieeilish.com/"
+            ]
+    #Add artists
+    for i in range(5):
+        artist = Artist(name=artist_name[i],hometown=hometown[i], about=about[i],photo=photo_url[i],
+                        twitter=twitter_url[i],spotify=spotify_url[i], instagram=instagram_url[i],
+                        merch=merch_url[i])
+        db.session.add(artist)
+        db.session.commit()
+
+    #Add events
+    for i in range(5):
+        artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
+        porch = db.session.query(Porch).filter_by(address=porches[i]).first()
+        time = datetime(2019, 9, 22, random.randint(1,12))
+        event = ArtistToPorch(time=time, artist_id=artist.id, porch_id=porch.id)
+        db.session.add(event)
+        db.session.commit()
+    #Add genres
+    # for i in range(5):
+    #     artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
+    return jsonify({"status": True})
+
