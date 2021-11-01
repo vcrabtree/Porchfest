@@ -81,6 +81,7 @@ class Artist(db.Model):
             'spotify': self.spotify,
             'instagram': self.instagram,
             'merch': self.merch,
+            'url_slug': self.url_slug
         }
         artist_events = []
         events = Porch.query.join(ArtistToPorch)\
