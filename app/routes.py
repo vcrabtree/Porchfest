@@ -79,7 +79,8 @@ def artists():
 
 @app.route('/genres')
 def genres():
-    genres_list = ["Rock", "Pop Music", "Jazz", "Heavy Metal"]
+    genres_list = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic",
+                   "Dance music", "Jazz", "Country music", "Punk rock"]
     return jsonify(genres_list)
 
 
