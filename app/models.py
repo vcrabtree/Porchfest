@@ -1,3 +1,5 @@
+import random
+
 from flask_wtf.file import FileField
 from slugify import slugify
 
@@ -67,6 +69,7 @@ class Artist(db.Model):
     instagram = db.Column(db.String(128))
     merch = db.Column(db.String(128), unique=True)
     url_slug = db.Column(db.String(128), index=True, unique=True)
+
     # content = db.Column(db.String(128), unique=True)
     # events = db.relationship('Event', backref='artist', lazy='dynamic')
 
@@ -84,12 +87,17 @@ class Artist(db.Model):
             'url_slug': self.url_slug
         }
         artist_events = []
-        events = Porch.query.join(ArtistToPorch)\
-                .filter(ArtistToPorch.artist_id == self.id)
+        events = Porch.query.join(ArtistToPorch) \
+            .filter(ArtistToPorch.artist_id == self.id)
         for event in events:
             artist_events.append(event.to_dict())
         data['events'] = artist_events
-        data['genre'] = ["Rock", "Pop Music", "Jazz", "Heavy Metal"]
+
+        genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
+                        "dance music","Jazz", "Country music", "Punk rock"]
+        num = random.randint(1,6)
+        data['genre'] = random.sample(genres, num)
+
         return data
 
     def __init__(self, **kwargs):
@@ -120,7 +128,8 @@ class Artist(db.Model):
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
-    #events = db.relationship('Event', backref='porch', lazy='dynamic')
+
+    # events = db.relationship('Event', backref='porch', lazy='dynamic')
 
     def to_dict(self, simplified=True):
         data = {
@@ -153,4 +162,3 @@ class ArtistToPorch(db.Model):
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     genre = db.Column(db.String(64), index=True, unique=True)
-
