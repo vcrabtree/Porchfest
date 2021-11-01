@@ -77,6 +77,12 @@ def artists():
     return jsonify(artists_list)
 
 
+@app.route('/genres')
+def genres():
+    genres_list = ["Rock", "Pop Music", "Jazz", "Heavy Metal"]
+    return jsonify(genres_list)
+
+
 @app.route('/schedule')
 def schedule():
     all_events = ArtistToPorch.query.all()
