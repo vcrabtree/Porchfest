@@ -261,7 +261,7 @@ def add_five_artist():
     genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
             "dance music","Jazz", "Country music", "Punk rock"]
     for genre in genres:
-        genre = Genre(genre=genre)
+        genre = Genre(name=genre)
         db.session.add(genre)
         db.session.commit()
 
