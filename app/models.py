@@ -172,7 +172,7 @@ class Genre(db.Model):
 
     def to_dict(self, simplified=True):
         data = {
-            'genre': self.genre
+            'genre': self.name
         }
         return data
 
@@ -186,7 +186,7 @@ class Genre(db.Model):
         :param genre: a genre object from the Genre table
         :return: None (but commits to Genre.url_slug)
         '''
-        slug_base = slugify(self.genre)
+        slug_base = slugify(self.name)
 
         # ensure the slug is unique
         slug = slug_base[:120]
