@@ -101,7 +101,7 @@ class Artist(db.Model):
         genres = Genre.query.join(ArtistToGenre) \
             .filter(ArtistToGenre.artist_id == self.id)
         for genre in genres:
-            artist_genres.append(genre.to_dict())
+            artist_genres.append(genre.genre)
         data['genre'] = artist_genres
 
         return data
@@ -167,13 +167,12 @@ class ArtistToPorch(db.Model):
 
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    genre = db.Column(db.String(64), index=True, unique=True)
+    name = db.Column(db.String(64), index=True, unique=True)
     url_slug = db.Column(db.String(128), index=True, unique=True)
 
     def to_dict(self, simplified=True):
         data = {
-            'genre': self.genre,
-            'url_slug': self.url_slug
+            'genre': self.genre
         }
         return data
 
