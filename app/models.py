@@ -93,10 +93,16 @@ class Artist(db.Model):
             artist_events.append(event.to_dict())
         data['events'] = artist_events
 
-        genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
-                        "dance music","Jazz", "Country music", "Punk rock"]
-        num = random.randint(1,6)
-        data['genre'] = random.sample(genres, num)
+        # genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
+        #                 "dance music","Jazz", "Country music", "Punk rock"]
+        # num = random.randint(1,6)
+        # data['genre'] = random.sample(genres, num)
+        artist_genres = []
+        genres = Genre.query.join(ArtistToGenre) \
+            .filter(ArtistToGenre.artist_id == self.id)
+        for genre in genres:
+            artist_genres.append(genre.to_dict())
+        data['genre'] = artist_genres
 
         return data
 
@@ -162,3 +168,35 @@ class ArtistToPorch(db.Model):
 class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     genre = db.Column(db.String(64), index=True, unique=True)
+    url_slug = db.Column(db.String(128), index=True, unique=True)
+
+    def to_dict(self, simplified=True):
+        data = {
+            'genre': self.genre,
+            'url_slug': self.url_slug
+        }
+        return data
+
+    def __init__(self, **kwargs):
+        super(Genre, self).__init__(**kwargs)
+        self.slug_genre()
+
+    def slug_genre(self):
+        '''
+        Takes a genre, generates a url_slug and commits to db
+        :param genre: a genre object from the Genre table
+        :return: None (but commits to Genre.url_slug)
+        '''
+        slug_base = slugify(self.genre)
+
+        # ensure the slug is unique
+        slug = slug_base[:120]
+        index = 2
+        while Genre.query.filter(Genre.url_slug == slug).count() != 0:
+            slug = slug_base + "-" + str(index)
+            index = index + 1
+
+        # commit unique slug to db
+        self.url_slug = slug
+        db.session.add(self)
+        db.session.commit()

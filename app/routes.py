@@ -256,6 +256,15 @@ def add_five_artist():
         porch = Porch(address=porches[i])
         db.session.add(porch)
         db.session.commit()
+
+
+    genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
+            "dance music","Jazz", "Country music", "Punk rock"]
+    for genre in genres:
+        genre = Genre(genre=genre)
+        db.session.add(genre)
+        db.session.commit()
+
     artist_name = ["BTS", "Taylor Swift", "Drake", "The Weeknd", "Billie Eilish"]
     hometown = ["Seoul, South Korea", "West Reading, Pennsylvania","Toronto, Ontario, Canada", "Toronto, Ontario, Canada", "Los Angeles, California"]
     about = ["BTS, also known as the Bangtan Boys, is a South Korean boy band that was formed in 2010 and debuted in 2013 under Big Hit Entertainment.",
@@ -302,7 +311,7 @@ def add_five_artist():
         db.session.add(artist)
         db.session.commit()
 
-    #Add events
+    #Add eventToArtists
     for i in range(5):
         artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
         porch = db.session.query(Porch).filter_by(address=porches[i]).first()
@@ -310,8 +319,17 @@ def add_five_artist():
         event = ArtistToPorch(time=time, artist_id=artist.id, porch_id=porch.id)
         db.session.add(event)
         db.session.commit()
-    #Add genres
-    # for i in range(5):
-    #     artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
+
+    #Add genresToArtists
+    genres_from_db = db.session.query(Genre).all()
+    for i in range(5):
+        num = random.randint(1, 6)
+        randGenre = random.sample(genres_from_db, num)
+        artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
+        for i in range(num):
+            genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=randGenre[i].id)
+            db.session.add(genreToArtist)
+            db.session.commit()
+
     return jsonify({"status": True})
 
