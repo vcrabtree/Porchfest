@@ -101,7 +101,7 @@ class Artist(db.Model):
         genres = Genre.query.join(ArtistToGenre) \
             .filter(ArtistToGenre.artist_id == self.id)
         for genre in genres:
-            artist_genres.append(genre.genre)
+            artist_genres.append(genre.name)
         data['genre'] = artist_genres
 
         return data
