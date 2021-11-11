@@ -279,12 +279,6 @@ def add_five_artist():
              "https://akns-images.eonline.com/eol_images/Entire_Site/2021330/rs_634x1024-210430163026-634-the-weeknd.jpg?fit=around%7C634:1024&output-quality=90&crop=634:1024;center,top",
              "https://media.allure.com/photos/605247e1bddfa641546fa160/1:1/w_2264,h_2264,c_limit/billie%20eilish.jpg"
             ]
-    twitter_url = ["https://twitter.com/bts_bighit?lang=en",
-                   "https://twitter.com/taylorswift13?lang=en",
-                   "https://twitter.com/drake",
-                   "https://twitter.com/theweeknd",
-                   "https://twitter.com/billieeilish"
-            ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
                 "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
@@ -297,17 +291,30 @@ def add_five_artist():
                      "https://www.instagram.com/theweeknd/",
                      "https://www.instagram.com/billieeilish/?hl=en"
             ]
-    merch_url = ["https://btsmerchshop.org/",
+    website_url = ["https://btsmerchshop.org/",
                  "https://www.taylorswift.com/",
                  "https://drakerelated.com/",
                  "https://www.theweeknd.com/",
                 "https://store.billieeilish.com/"
             ]
+    youtube_url = ["https://www.youtube.com/channel/UCLkAepWjdylmXSltofFvsYQ",
+               "https://www.youtube.com/c/TaylorSwift",
+                "https://www.youtube.com/user/DrakeOfficial",
+                "https://www.youtube.com/channel/UC0WP5P-ufpRfjbNrmOWwLBQ",
+                "https://www.youtube.com/channel/UCiGm_E4ZwYSHV3bcW1pnSeQ"
+            ]
+    facebook_url = ["https://www.facebook.com/bangtan.official",
+                "https://www.facebook.com/TaylorSwift",
+                "https://www.facebook.com/Drake",
+                "https://www.facebook.com/theweeknd",
+                "https://www.facebook.com/billieeilish"
+           ]
+
     #Add artists
     for i in range(5):
         artist = Artist(name=artist_name[i],hometown=hometown[i], about=about[i],photo=photo_url[i],
-                        twitter=twitter_url[i],spotify=spotify_url[i], instagram=instagram_url[i],
-                        merch=merch_url[i])
+                        spotify=spotify_url[i], instagram=instagram_url[i],
+                        website=website_url[i], youtube=youtube_url[i], facebook=facebook_url[i])
         db.session.add(artist)
         db.session.commit()
 

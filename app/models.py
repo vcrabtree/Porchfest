@@ -64,14 +64,15 @@ class Artist(db.Model):
     hometown = db.Column(db.String(64), index=True)
     about = db.Column(db.String(255))
     photo = db.Column(db.String(255))
-    twitter = db.Column(db.String(128))
+    website = db.Column(db.String(128))
     spotify = db.Column(db.String(128))
+    youtube = db.Column(db.String(128))
+    facebook = db.Column(db.String(128))
     instagram = db.Column(db.String(128))
-    merch = db.Column(db.String(128), unique=True)
+    more = db.Column(db.String(128))
     url_slug = db.Column(db.String(128), index=True, unique=True)
 
     # content = db.Column(db.String(128), unique=True)
-    # events = db.relationship('Event', backref='artist', lazy='dynamic')
 
     def to_dict(self):
         data = {
@@ -80,10 +81,11 @@ class Artist(db.Model):
             'hometown': self.hometown,
             'about': self.about,
             'photo': self.photo,
-            'twitter': self.twitter,
+            'website': self.website,
             'spotify': self.spotify,
+            'youtube': self.youtube,
+            'facebook': self.facebook,
             'instagram': self.instagram,
-            'merch': self.merch,
             'url_slug': self.url_slug
         }
         artist_events = []
