@@ -68,13 +68,32 @@ def register():
     return jsonify({"status": True})
 
 
-@app.route('/artists')
+@app.route('/artists', methods=['GET', 'POST'])
 def artists():
-    all_artists = Artist.query.order_by(Artist.name.asc()).all()
-    artists_list = []
-    for artist in all_artists:
-        artists_list.append(artist.to_dict())
-    return jsonify(artists_list)
+    sort_type = request.json['type']
+    if sort_type == 'alphabetical':
+        all_artists = Artist.query.order_by(Artist.name.asc()).all()
+        artists_list = []
+        for artist in all_artists:
+            artists_list.append(artist.to_dict())
+        return jsonify(artists_list)
+    else:
+        genre_artist_results = []
+        all_genres = Genre.query.order_by(Genre.name.asc()).all()
+        all_artists = Artist.query.order_by(Artist.name.asc()).all()
+        count = 0
+        for genre in all_genres:
+            genre_artists = {genre.name: []}
+            artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre.id).all()
+            for artist_to_genre in artist_to_genre_info:
+                for artist in all_artists:
+                    if artist.id == artist_to_genre.artist_id:
+                        if count < 3:
+                            genre_artists[genre.name].append(artist.to_dict())
+                            count += 1
+            count = 0
+            genre_artist_results.append(genre_artists)
+        return jsonify(genre_artist_results)
 
 
 @app.route('/genres')

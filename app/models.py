@@ -57,6 +57,14 @@ class ArtistToGenre(db.Model):
     artist = db.relationship("Artist", backref="genres")
     genre = db.relationship("Genre", backref="artists")
 
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'artist_id': self.artist_id,
+            'genre_id': self.genre_id,
+        }
+        return data
+
 
 class Artist(db.Model):
     name = db.Column(db.String(128), index=True, unique=True)
@@ -174,6 +182,7 @@ class Genre(db.Model):
 
     def to_dict(self):
         data = {
+            'id': self.id,
             'name': self.name
         }
         return data
