@@ -5,14 +5,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 # from flask_googlemaps import GoogleMaps
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 
 app = Flask(__name__)
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
 app.config.from_object(Config)
 app._static_folder = os.path.abspath("static/")
 db = SQLAlchemy(app)
