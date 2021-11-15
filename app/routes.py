@@ -79,9 +79,18 @@ def artists():
 
 @app.route('/genres')
 def genres():
-    genres_list = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic",
-                   "Dance music", "Jazz", "Country music", "Punk rock"]
-    return jsonify(genres_list)
+    all_genres = Genre.query.order_by(Genre.name.asc()).all()
+    genre_list = []
+    for genre in all_genres:
+        genre_list.append(genre.to_dict())
+    return jsonify(genre_list)
+
+
+@app.route('/genre/<string:slug>', methods=['GET'])
+def get_slug_genre(slug):
+    genre_data = Genre.query.filter_by(url_slug=slug).first_or_404()
+    result = {"genre": genre_data.to_dict()}
+    return jsonify(result)
 
 
 @app.route('/schedule')

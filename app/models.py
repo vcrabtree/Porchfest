@@ -172,9 +172,9 @@ class Genre(db.Model):
     name = db.Column(db.String(64), index=True, unique=True)
     url_slug = db.Column(db.String(128), index=True, unique=True)
 
-    def to_dict(self, simplified=True):
+    def to_dict(self):
         data = {
-            'genre': self.name
+            'name': self.name
         }
         return data
 
