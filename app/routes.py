@@ -107,9 +107,17 @@ def genres():
 
 @app.route('/genre/<string:slug>', methods=['GET'])
 def get_slug_genre(slug):
+    genre_artist_results = []
     genre_data = Genre.query.filter_by(url_slug=slug).first_or_404()
-    result = {"genre": genre_data.to_dict()}
-    return jsonify(result)
+    all_artists = Artist.query.order_by(Artist.name.asc()).all()
+    genre_artists = {genre_data.name: []}
+    artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre_data.id).all()
+    for artist_to_genre in artist_to_genre_info:
+        for artist in all_artists:
+            if artist.id == artist_to_genre.artist_id:
+                genre_artists[genre_data.name].append(artist.to_dict())
+    genre_artist_results.append(genre_artists)
+    return jsonify(genre_artist_results)
 
 
 @app.route('/schedule')
