@@ -94,6 +94,7 @@ class Artist(db.Model):
             'youtube': self.youtube,
             'facebook': self.facebook,
             'instagram': self.instagram,
+            'more': self.more,
             'url_slug': self.url_slug
         }
         artist_events = []
