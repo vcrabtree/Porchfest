@@ -345,7 +345,9 @@ def add_five_artist():
                 "https://www.facebook.com/theweeknd",
                 "https://www.facebook.com/billieeilish"
            ]
-
+    more_url = ["https://www.tiktok.com/@bts_official_bighit?lang=en",
+                "https://music.apple.com/us/artist/taylor-swift/159260351",
+                "https://en.wikipedia.org/wiki/Drake_(musician)"]
     #Add artists
     for i in range(5):
         artist = Artist(name=artist_name[i],hometown=hometown[i], about=about[i],photo=photo_url[i],
@@ -373,6 +375,10 @@ def add_five_artist():
             genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=randGenre[i].id)
             db.session.add(genreToArtist)
             db.session.commit()
-
+    #Add 'more' urls
+    for i in range(3):
+        artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
+        artist.more = more_url[i]
+        db.session.commit()
     return jsonify({"status": True})
 
