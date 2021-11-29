@@ -83,7 +83,7 @@ def artists():
         all_artists = Artist.query.order_by(Artist.name.asc()).all()
         count = 0
         for genre in all_genres:
-            genre_artists = {genre.name: []}
+            genre_artists = {genre.name: [], "slug": genre.url_slug}
             artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre.id).all()
             for artist_to_genre in artist_to_genre_info:
                 for artist in all_artists:
