@@ -129,6 +129,71 @@ def schedule():
     return jsonify(events_list)
 
 
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    search_input = request.json['entry']
+
+    exact_artist = Artist.query.filter(Artist.name == search_input).limit(4).all()
+
+    if len(exact_artist) < 4:
+        more_artists = Artist.query.filter(Artist.name.like("%" + search_input + "%")).limit(
+            4 - len(exact_artist)).all()
+    else:
+        more_artists = None
+
+    if exact_artist:
+        artist_like = exact_artist
+        if more_artists:
+            # checks to see if exact artist matches any similar artists
+            same = 0
+            for artist in more_artists:
+                for a in exact_artist:
+                    if artist == a:
+                        same = 1
+                if same == 0:
+                    artist_like.append(artist)
+    elif more_artists:
+        artist_like = more_artists
+    else:
+        artist_like = []
+
+    artist_search_results = []
+    for i in range(0, len(artist_like)):
+        artist_data = artist_like[i].to_dict()
+        artist_search_results.append({"artist": artist_data})
+
+    exact_genre = Genre.query.filter(Genre.name == search_input).limit(4).all()
+
+    if len(exact_genre) < 4:
+        more_genres = Genre.query.filter(Genre.name.like("%" + search_input + "%")).limit(
+            4 - len(exact_genre)).all()
+    else:
+        more_genres = None
+
+    if exact_genre:
+        genre_like = exact_genre
+        if more_genres:
+            # checks to see if exact genre matches any similar genres
+            same = 0
+            for genre in more_genres:
+                for g in exact_genre:
+                    if genre == g:
+                        same = 1
+                if same == 0:
+                    genre_like.append(genre)
+    elif more_genres:
+        genre_like = more_genres
+    else:
+        genre_like = []
+
+    genre_search_results = []
+    for i in range(0, len(genre_like)):
+        genre_data = genre_like[i].to_dict()
+        genre_search_results.append({"genre": genre_data})
+
+    return jsonify({"artists": artist_search_results, "genres": genre_search_results})
+
+
 @app.route('/location')
 def location():
     return jsonify({"map": "TODO"})
