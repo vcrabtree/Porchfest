@@ -184,7 +184,8 @@ class Genre(db.Model):
     def to_dict(self):
         data = {
             'id': self.id,
-            'name': self.name
+            'name': self.name,
+            'slug': self.url_slug
         }
         return data
 
