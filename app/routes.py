@@ -44,6 +44,9 @@ def login():
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
+    u = User(username='susan', email='susan@example.com')
+    db.session.add(u)
+    db.session.commit()
     return jsonify({"status": True})
 
 
@@ -118,6 +121,44 @@ def get_slug_genre(slug):
                 genre_artists[genre_data.name].append(artist.to_dict())
     genre_artist_results.append(genre_artists)
     return jsonify(genre_artist_results)
+
+@app.route('/update_user_to_artist', methods=['POST'])
+#Needs to be to a spec user
+def update_user_to_artist():
+    info = request.json
+    artist_id = info.get('artist_id')
+    # user_id = info.get('user_id')
+
+    # u2a = UserToArtist.query.filter_by(user_id=user_id, artist_id=artist_id).first()
+    u2a = UserToArtist.query.filter_by(user_id=2, artist_id=artist_id).first()
+    if u2a is None:
+        u2a = UserToArtist(
+            user_id=2,
+            artist_id=artist_id,
+            favorite=True
+        )
+        db.session.add(u2a)
+        db.session.commit()
+    elif not u2a.favorite:
+        u2a.favorite = True
+        db.session.commit()
+    else:
+        u2a.favorite = False
+    db.session.commit()
+    print(artist_id)
+    return jsonify({"status": True})
+
+
+@app.route('/get_saved_artists', methods=['GET', 'POST'])
+def get_saved_artists():
+    u2artists = UserToArtist.query.filter_by(user_id=2, favorite=True).all()
+    fav_artists = []
+    for artist in u2artists:
+        fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())
+    print(fav_artists)
+    return jsonify(fav_artists)
+
+#def get_user_favorite_artists:
 
 
 @app.route('/schedule')
