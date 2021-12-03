@@ -114,7 +114,9 @@ class Artist(db.Model):
         for genre in genres:
             artist_genres.append(genre.name)
         data['genre'] = artist_genres
-
+        favoritedArtist = UserToArtist.query.filter(UserToArtist.artist_id == self.id, UserToArtist.user_id == 2).first()
+        if favoritedArtist is not None:
+            data['liked'] = favoritedArtist.favorite
         return data
 
     def __init__(self, **kwargs):
