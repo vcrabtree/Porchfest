@@ -130,10 +130,10 @@ def update_user_to_artist():
     # user_id = info.get('user_id')
 
     # u2a = UserToArtist.query.filter_by(user_id=user_id, artist_id=artist_id).first()
-    u2a = UserToArtist.query.filter_by(user_id=2, artist_id=artist_id).first()
+    u2a = UserToArtist.query.filter_by(user_id=4, artist_id=artist_id).first()
     if u2a is None:
         u2a = UserToArtist(
-            user_id=2,
+            user_id=4,
             artist_id=artist_id,
             favorite=True
         )
@@ -145,13 +145,12 @@ def update_user_to_artist():
     else:
         u2a.favorite = False
     db.session.commit()
-    print(artist_id)
-    return jsonify({"status": True})
+    return jsonify(u2a.favorite)
 
 
 @app.route('/get_saved_artists', methods=['GET', 'POST'])
 def get_saved_artists():
-    u2artists = UserToArtist.query.filter_by(user_id=2, favorite=True).all()
+    u2artists = UserToArtist.query.filter_by(user_id=4, favorite=True).all()
     fav_artists = []
     for artist in u2artists:
         fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())
