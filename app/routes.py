@@ -406,19 +406,19 @@ def add_five_artist():
         db.session.add(genre)
         db.session.commit()
 
-    artist_name = ["BTS", "Taylor Swift", "Drake", "The Weeknd", "Billie Eilish"]
-    hometown = ["Seoul, South Korea", "West Reading, Pennsylvania","Toronto, Ontario, Canada", "Toronto, Ontario, Canada", "Los Angeles, California"]
-    about = ["BTS, also known as the Bangtan Boys, is a South Korean boy band that was formed in 2010 and debuted in 2013 under Big Hit Entertainment.",
-             "Taylor Alison Swift is an American singer-songwriter. Her narrative songwriting, which is often inspired by her personal life, has received widespread media coverage and critical praise.",
-             "Aubrey Drake Graham is a Canadian rapper, singer, songwriter, and actor. ",
-             "Abel Makkonen Tesfaye, known professionally as the Weeknd, is a Canadian singer, songwriter, and record producer.",
-             "Billie Eilish Pirate Baird O'Connell is an American singer and songwriter."
+    artist_name = ["Daniel Kaiya", "The Flywheels", "The Grady Girls", "Northside Stringband", "Bob Keefe and the Surf Renegades"]
+    hometown = ["Ithaca, NY", "Ithaca, NY","Ithaca, NY", "Ithaca, NY", "Ithaca, NY"]
+    about = ["I'm surrendering my expectations to the dance of it, the ride of the vibes, the will to live deeply from within, guided by true emotion, in devotion to the Earth and the Birth of possibility just beyond the edge of what I see.",
+             "Bluegrass with grit in the southern Finger Lakes region of New York.",
+             "Toe tapping, heart lifting, subtle and smiling, The Grady Girls breathe new life into timeless Irish dance tunes!",
+             "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
+             "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
              ]
-    photo_url = ["https://upload.wikimedia.org/wikipedia/commons/4/4f/BTS_for_Dispatch_White_Day_Special%2C_27_February_2019_01.jpg",
-             "https://variety.com/wp-content/uploads/2020/01/taylor-swift-variety-cover-5-16x9-1000.jpg?w=681&h=383&crop=1",
-             "https://media.pitchfork.com/photos/612903e10a693361be8082cb/16:9/w_2480,h_1395,c_limit/Drake.jpg",
-             "https://akns-images.eonline.com/eol_images/Entire_Site/2021330/rs_634x1024-210430163026-634-the-weeknd.jpg?fit=around%7C634:1024&output-quality=90&crop=634:1024;center,top",
-             "https://media.allure.com/photos/605247e1bddfa641546fa160/1:1/w_2264,h_2264,c_limit/billie%20eilish.jpg"
+    photo_url = ["https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=EUWBrEuL1McAX_o_1zP&_nc_ht=scontent-ort2-1.xx&oh=00_AT8sTXdQH_yV4u2ZAg2VMIPoPtV2NTAFv8NCVFkbTRfsRQ&oe=61DDD18D",
+             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=Bp2tdTNE7QMAX-2iBz2&_nc_ht=scontent-ort2-1.xx&oh=00_AT-YKCOYNAEUE4jG5fEpNUCYa4tjIVkZeTxo-SQ4MSS5HQ&oe=61DDC7AD",
+             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=AfpOtdFw0EgAX_90uSn&_nc_ht=scontent-ort2-1.xx&oh=00_AT-KVjP79uL5c4ttlVzENO_CPjkKmphaIsl7HzqSU37p6A&oe=61DCDE1E",
+             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=5mWWsfY04uIAX9JB8W1&_nc_ht=scontent-ort2-1.xx&oh=00_AT-kFGZxrox6po3TrRQyTqLNoj0i0MNR7Bx2qnItyz_r7w&oe=61DD18E9",
+             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/39010673_1883989948570675_300502416271343616_n.jpg?_nc_cat=106&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=d7CJYm37Ih0AX9ANw5L&_nc_ht=scontent-ort2-1.xx&oh=92c9e6df4d124217232e503a86c1733c&oe=61DE4C9E"
             ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
@@ -432,23 +432,23 @@ def add_five_artist():
                      "https://www.instagram.com/theweeknd/",
                      "https://www.instagram.com/billieeilish/?hl=en"
             ]
-    website_url = ["https://btsmerchshop.org/",
-                 "https://www.taylorswift.com/",
-                 "https://drakerelated.com/",
-                 "https://www.theweeknd.com/",
-                "https://store.billieeilish.com/"
+    website_url = ["https://wildflowerfire.com/",
+                 "https://flywheels.bandcamp.com/",
+                 "https://soundcloud.com/the-grady-girls",
+                 "https://www.deborahjustice.org/northside-stringband",
+                "https://www.surf-renegades.com/"
             ]
-    youtube_url = ["https://www.youtube.com/channel/UCLkAepWjdylmXSltofFvsYQ",
+    youtube_url = ["https://www.youtube.com/user/KaiyaFuson",
                "https://www.youtube.com/c/TaylorSwift",
                 "https://www.youtube.com/user/DrakeOfficial",
                 "https://www.youtube.com/channel/UC0WP5P-ufpRfjbNrmOWwLBQ",
-                "https://www.youtube.com/channel/UCiGm_E4ZwYSHV3bcW1pnSeQ"
+                "https://www.youtube.com/channel/UCnqVyeQgIytLWiv6kmyA1gw"
             ]
     facebook_url = ["https://www.facebook.com/bangtan.official",
-                "https://www.facebook.com/TaylorSwift",
-                "https://www.facebook.com/Drake",
-                "https://www.facebook.com/theweeknd",
-                "https://www.facebook.com/billieeilish"
+                "https://www.facebook.com/FlywheelsBluegrass/",
+                "https://www.facebook.com/thegradygirls/",
+                "https://www.facebook.com/Northside-Stringband-536218100207433/",
+                "https://www.facebook.com/BobKeefeSurf/"
            ]
     more_url = ["https://www.tiktok.com/@bts_official_bighit?lang=en",
                 "https://music.apple.com/us/artist/taylor-swift/159260351",
