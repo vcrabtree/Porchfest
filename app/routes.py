@@ -1,11 +1,12 @@
 import os
 
 import pandas as pd
-from flask import flash, redirect, url_for, request
+from flask import flash, redirect, url_for, request, render_template
 from flask import jsonify
 from flask_login import login_user, logout_user, current_user
 from werkzeug.urls import url_parse
-
+from flask_login import login_required
+from app import db, create_app
 from app import app
 from app.forms import *
 from app.models import *
@@ -13,6 +14,7 @@ from app.models import *
 
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
     all_artists = Artist.query.order_by(Artist.name.asc()).all()
     artists_list = []
@@ -44,10 +46,10 @@ def login():
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
-    u = User(username='susan', email='susan@example.com')
-    db.session.add(u)
-    db.session.commit()
-    return jsonify({"status": True})
+    #u = User(username='susan', email='susan@example.com')
+    # db.session.add(u)
+    # db.session.commit()
+    return render_template('login.html', title='Sign In', form=form)
 
 
 @app.route('/logout')
@@ -68,7 +70,8 @@ def register():
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
-    return jsonify({"status": True})
+    # return jsonify({"status": True})
+    return render_template('register.html', title='Register', form=form)
 
 
 @app.route('/artists', methods=['GET', 'POST'])
@@ -130,10 +133,10 @@ def update_user_to_artist():
     # user_id = info.get('user_id')
 
     # u2a = UserToArtist.query.filter_by(user_id=user_id, artist_id=artist_id).first()
-    u2a = UserToArtist.query.filter_by(user_id=4, artist_id=artist_id).first()
+    u2a = UserToArtist.query.filter_by(user_id=1, artist_id=artist_id).first()
     if u2a is None:
         u2a = UserToArtist(
-            user_id=4,
+            user_id=1,
             artist_id=artist_id,
             favorite=True
         )
@@ -150,7 +153,7 @@ def update_user_to_artist():
 
 @app.route('/get_saved_artists', methods=['GET', 'POST'])
 def get_saved_artists():
-    u2artists = UserToArtist.query.filter_by(user_id=4, favorite=True).all()
+    u2artists = UserToArtist.query.filter_by(user_id=1, favorite=True).all()
     fav_artists = []
     for artist in u2artists:
         fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())

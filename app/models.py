@@ -7,6 +7,9 @@ from app import db, login
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+import base64
+from datetime import datetime, timedelta
+import os
 
 
 class User(UserMixin, db.Model):
@@ -16,6 +19,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     created = db.Column(db.DateTime, default=datetime.utcnow)
+    token = db.Column(db.String(32), index=True, unique=True)
+    token_expiration = db.Column(db.DateTime)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -25,6 +30,36 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_token(self, expires_in=3600):
+        now = datetime.utcnow()
+        if self.token and self.token_expiration > now + timedelta(seconds=60):
+            return self.token
+        self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+        self.token_expiration = now + timedelta(seconds=expires_in)
+        db.session.add(self)
+        return self.token
+
+    def revoke_token(self):
+        self.token_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    @staticmethod
+    def check_token(token):
+        user = User.query.filter_by(token=token).first()
+        if user is None or user.token_expiration < datetime.utcnow():
+            return None
+        return user
+
+    def to_dict(self, include_email=False):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            # 'last_seen': self.last_seen.isoformat() + 'Z',
+        }
+
+        if include_email:
+            data['email'] = self.email
+        return data
 
 
 @login.user_loader
@@ -114,7 +149,8 @@ class Artist(db.Model):
         for genre in genres:
             artist_genres.append(genre.name)
         data['genre'] = artist_genres
-        favoritedArtist = UserToArtist.query.filter(UserToArtist.artist_id == self.id, UserToArtist.user_id == 2).first()
+        favoritedArtist = UserToArtist.query.filter(UserToArtist.artist_id == self.id,
+                                                    UserToArtist.user_id == 1).first()
         if favoritedArtist is not None:
             data['liked'] = favoritedArtist.favorite
         return data
