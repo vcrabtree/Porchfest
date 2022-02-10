@@ -7,17 +7,19 @@ from app.api.auth import token_auth
 from app.api import bp
 
 
-@bp.route('/users/<int:id>', methods=['GET'])
+# @bp.route('/users/<int:id>', methods=['GET'])
+@bp.route('/test', methods=['GET'])
 @token_auth.login_required
 def get_user(id):
-    return jsonify(User.query.get_or_404(id).to_dict())
+    #return jsonify(User.query.get_or_404(id).to_dict())
+    return jsonify({"status": True})
 
-@bp.route('/get_user', methods=['POST'])
-@token_auth.login_required
-def get_user(id):
-    # if g.current_user.id != id:
-    #     abort(403)
-    return jsonify(User.query.get_or_404(id).to_dict())
+# @bp.route('/get_user', methods=['POST'])
+# @token_auth.login_required
+# def get_user(id):
+#     # if g.current_user.id != id:
+#     #     abort(403)
+#     return jsonify(User.query.get_or_404(id).to_dict())
 
 
 

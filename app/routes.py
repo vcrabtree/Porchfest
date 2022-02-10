@@ -13,7 +13,6 @@ from app.models import *
 
 
 @app.route('/')
-@app.route('/index')
 @login_required
 def index():
     all_artists = Artist.query.order_by(Artist.name.asc()).all()
