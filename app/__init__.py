@@ -1,5 +1,7 @@
 import os
 from flask import Flask
+from flask_jwt_extended import JWTManager
+
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -20,6 +22,8 @@ login = LoginManager(app)
 login.login_view = "login"
 bootstrap = Bootstrap(app)
 
+app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET')  # Change this!
+jwt = JWTManager(app)
 
 # ading a comment, hope this works
 # Initialize the extension

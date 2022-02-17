@@ -10,6 +10,20 @@ from app import db, create_app
 from app import app
 from app.forms import *
 from app.models import *
+from flask_jwt_extended import create_access_token
+
+
+# Create a route to authenticate your users and return JWTs. The
+# create_access_token() function is used to actually generate the JWT.
+@app.route("/token", methods=["POST"])
+def create_token():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+    if email != "test" or password != "test":
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    access_token = create_access_token(identity=email)
+    return jsonify(access_token=access_token)
 
 
 @app.route('/')
@@ -28,27 +42,6 @@ def get_slug_artist(slug):
     artist_data = Artist.query.filter_by(url_slug=slug).first_or_404()
     result = {"artist": artist_data.to_dict()}
     return jsonify(result)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        login_user(user, remember=True)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
-    #u = User(username='susan', email='susan@example.com')
-    # db.session.add(u)
-    # db.session.commit()
-    return render_template('login.html', title='Sign In', form=form)
 
 
 @app.route('/logout')
