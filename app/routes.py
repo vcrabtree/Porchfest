@@ -27,7 +27,6 @@ def create_token():
 
 
 @app.route('/')
-@login_required
 def index():
     all_artists = Artist.query.order_by(Artist.name.asc()).all()
     artists_list = []
