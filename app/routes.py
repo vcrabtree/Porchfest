@@ -10,7 +10,7 @@ from app import db, create_app
 from app import app
 from app.forms import *
 from app.models import *
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required
 
 
 # Create a route to authenticate your users and return JWTs. The
@@ -144,7 +144,9 @@ def update_user_to_artist():
 
 
 @app.route('/get_saved_artists', methods=['GET', 'POST'])
+@jwt_required()
 def get_saved_artists():
+    print("Getting saved artists")
     u2artists = UserToArtist.query.filter_by(user_id=1, favorite=True).all()
     fav_artists = []
     for artist in u2artists:
