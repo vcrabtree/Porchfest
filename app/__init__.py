@@ -1,4 +1,6 @@
 import os
+from datetime import timedelta
+
 from flask import Flask
 from flask_jwt_extended import JWTManager
 
@@ -13,7 +15,7 @@ import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 
 app = Flask(__name__)
-cors = CORS(app)
+CORS(app)
 app.config.from_object(Config)
 app._static_folder = os.path.abspath("static/")
 db = SQLAlchemy(app)
@@ -23,6 +25,9 @@ login.login_view = "login"
 bootstrap = Bootstrap(app)
 
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET')  # Change this!
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
+
 jwt = JWTManager(app)
 
 # ading a comment, hope this works

@@ -1,8 +1,11 @@
 import os
+import uuid
 
+import jwt
 import pandas as pd
 from flask import flash, redirect, url_for, request, render_template
 from flask import jsonify
+from flask_cors import cross_origin
 from flask_login import login_user, logout_user, current_user
 from werkzeug.urls import url_parse
 from flask_login import login_required
@@ -10,19 +13,84 @@ from app import db, create_app
 from app import app
 from app.forms import *
 from app.models import *
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, create_refresh_token, get_jwt_identity
 
 
-# Create a route to authenticate your users and return JWTs. The
-# create_access_token() function is used to actually generate the JWT.
-@app.route("/token", methods=["POST"])
-def create_token():
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-    if email != "test" or password != "test":
-        return jsonify({"msg": "Bad username or password"}), 401
+@app.route("/login", methods=["POST"])
+@cross_origin()
+def login():
+    auth = request.json
+    if not auth or not auth.get('email') or not auth.get('password'):
+        # returns 401 if any email or / and password is missing
+        return jsonify(
+            'Could not verify',
+            401,
+            {'WWW-Authenticate': 'Basic realm ="Login required !!"'}
+        )
+    user = User.query \
+        .filter_by(email=auth.get('email')) \
+        .first()
+    if not user:
+        # returns 401 if user does not exist
+        return jsonify(
+            'Could not verify',
+            401,
+            {'WWW-Authenticate': 'Basic realm ="User does not exist !!"'}
+        )
 
-    access_token = create_access_token(identity=email)
+    if check_password_hash(user.password_hash, auth.get('password')):
+        # generates the JWT Token
+        access_token = create_access_token(identity=user.id, fresh=True)
+        refresh_token = create_refresh_token(identity=user.id)
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 201
+
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    # creates a dictionary of the form data
+    info = request.json
+
+    # gets name, email and password
+    email = info.get('email')
+    password = info.get('password')
+
+    # checking for existing user
+    user = User.query \
+        .filter_by(email=email) \
+        .first()
+    if not user:
+        username = str(email).split('@')
+        # database ORM object
+        user = User(
+            username=username[0],
+            email=email,
+            password_hash=generate_password_hash(password)
+        )
+        # insert user
+        print("User created")
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify('Successfully registered.', 201)
+    else:
+        # returns 202 if user already exists
+        return jsonify('User already exists. Please Log in.', 202)
+
+
+# refresh tokens to access this route.
+@app.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity)
+    user = User.query.filter_by(id=identity).first()
+    user.access_token = access_token
+    db.session.add(user)
+    db.session.commit()
     return jsonify(access_token=access_token)
 
 
@@ -32,13 +100,25 @@ def index():
     artists_list = []
     for artist in all_artists:
         artists_list.append(artist.to_dict())
-    return jsonify(artists_list)
+    return jsonify({"status": True})
+    # return jsonify(artists_list)
     # return jsonify({ "name": "Post Malone", "id": 7297, "hometown": "Grapevine, TX", "about": "Malone was born on July 4, 1995 in Syracuse, New York and moved to Grapevine, Texas at the age of 10. He started playing guitar at the age of 14 because of popular video game Guitar Hero . He later auditioned for band Crowd the Empire in 2010 but was rejected after his guitar string broke during the audition.", "photo": "https://i.scdn.co/image/93fec27f9aac86526b9010e882037afbda4e3d5f", "twitter": "https://twitter.com/postmalone", "spotify": "https://open.spotify.com/artist/246dkjvS1zLTtiykXe5h60", "instagram": "https://www.instagram.com/postmalone/", "merch": "https://shop.postmalone.com" })
 
 
-@app.route('/artist/<string:slug>', methods=['GET'])
+@app.route('/artist/<string:slug>', methods=['GET', 'POST'])
 def get_slug_artist(slug):
+    info = request.json
+    user = None
+    if info is not None:
+        user = User.query.filter_by(access_token=info.get('access_token')).first()
     artist_data = Artist.query.filter_by(url_slug=slug).first_or_404()
+    if user:
+        favoritedArtist = UserToArtist.query.filter(UserToArtist.artist_id == artist_data.id,
+                                                    UserToArtist.user_id == user.id).first()
+        if favoritedArtist is not None:
+            result = {"artist": artist_data.to_dict()}
+            result['liked'] = favoritedArtist.favorite
+            return result
     result = {"artist": artist_data.to_dict()}
     return jsonify(result)
 
@@ -116,44 +196,45 @@ def get_slug_genre(slug):
     genre_artist_results.append(genre_artists)
     return jsonify(genre_artist_results)
 
-@app.route('/update_user_to_artist', methods=['POST'])
-#Needs to be to a spec user
+
+@app.route('/update_user_to_artist', methods=['GET', 'POST'])
+@jwt_required()
 def update_user_to_artist():
     info = request.json
     artist_id = info.get('artist_id')
-    # user_id = info.get('user_id')
-
-    # u2a = UserToArtist.query.filter_by(user_id=user_id, artist_id=artist_id).first()
-    u2a = UserToArtist.query.filter_by(user_id=1, artist_id=artist_id).first()
-    if u2a is None:
-        u2a = UserToArtist(
-            user_id=1,
-            artist_id=artist_id,
-            favorite=True
-        )
+    if get_jwt_identity() is not None:
+        u2a = UserToArtist.query.filter_by(user_id=get_jwt_identity(), artist_id=artist_id).first()
+        if u2a is None:
+            u2a = UserToArtist(
+                user_id=get_jwt_identity(),
+                artist_id=artist_id,
+                favorite=True
+            )
+            db.session.add(u2a)
+            db.session.commit()
+        elif not u2a.favorite:
+            u2a.favorite = True
+        else:
+            u2a.favorite = False
         db.session.add(u2a)
         db.session.commit()
-    elif not u2a.favorite:
-        u2a.favorite = True
-        db.session.commit()
-    else:
-        u2a.favorite = False
-    db.session.commit()
-    return jsonify(u2a.favorite)
+        return jsonify(u2a.favorite)
+    return jsonify(None)
 
-
-@app.route('/get_saved_artists', methods=['GET', 'POST'])
+@app.route('/get_user_saved_artists', methods=['GET'])
 @jwt_required()
 def get_saved_artists():
-    print("Getting saved artists")
-    u2artists = UserToArtist.query.filter_by(user_id=1, favorite=True).all()
+    u2artists = UserToArtist.query.filter_by(user_id=get_jwt_identity(), favorite=True).all()
     fav_artists = []
-    for artist in u2artists:
-        fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())
-    print(fav_artists)
-    return jsonify(fav_artists)
+    if u2artists is not None:
+        for artist in u2artists:
+            fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())
+        return jsonify(fav_artists)
+    else:
+        return None
 
-#def get_user_favorite_artists:
+
+# def get_user_favorite_artists:
 
 
 @app.route('/schedule')
@@ -379,7 +460,7 @@ def reset_db():
 
 @app.route('/artist_info_all_add')
 def add_five_artist():
-    #Clear the current tables of data 
+    # Clear the current tables of data
     meta = db.metadata
     for table in reversed(meta.sorted_tables):
         print('Clear table {}'.format(table))
@@ -394,79 +475,82 @@ def add_five_artist():
         db.session.add(porch)
         db.session.commit()
 
-
     genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
-            "dance music","Jazz", "Country music", "Punk rock"]
+                                                                                           "dance music", "Jazz",
+              "Country music", "Punk rock"]
     for genre in genres:
         genre = Genre(name=genre)
         db.session.add(genre)
         db.session.commit()
 
-    artist_name = ["Daniel Kaiya", "The Flywheels", "The Grady Girls", "Northside Stringband", "Bob Keefe and the Surf Renegades"]
-    hometown = ["Ithaca, NY", "Ithaca, NY","Ithaca, NY", "Ithaca, NY", "Ithaca, NY"]
-    about = ["I'm surrendering my expectations to the dance of it, the ride of the vibes, the will to live deeply from within, guided by true emotion, in devotion to the Earth and the Birth of possibility just beyond the edge of what I see.",
-             "Bluegrass with grit in the southern Finger Lakes region of New York.",
-             "Toe tapping, heart lifting, subtle and smiling, The Grady Girls breathe new life into timeless Irish dance tunes!",
-             "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
-             "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
-             ]
-    photo_url = ["https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=EUWBrEuL1McAX_o_1zP&_nc_ht=scontent-ort2-1.xx&oh=00_AT8sTXdQH_yV4u2ZAg2VMIPoPtV2NTAFv8NCVFkbTRfsRQ&oe=61DDD18D",
-             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=Bp2tdTNE7QMAX-2iBz2&_nc_ht=scontent-ort2-1.xx&oh=00_AT-YKCOYNAEUE4jG5fEpNUCYa4tjIVkZeTxo-SQ4MSS5HQ&oe=61DDC7AD",
-             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=AfpOtdFw0EgAX_90uSn&_nc_ht=scontent-ort2-1.xx&oh=00_AT-KVjP79uL5c4ttlVzENO_CPjkKmphaIsl7HzqSU37p6A&oe=61DCDE1E",
-             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=5mWWsfY04uIAX9JB8W1&_nc_ht=scontent-ort2-1.xx&oh=00_AT-kFGZxrox6po3TrRQyTqLNoj0i0MNR7Bx2qnItyz_r7w&oe=61DD18E9",
-             "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/39010673_1883989948570675_300502416271343616_n.jpg?_nc_cat=106&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=d7CJYm37Ih0AX9ANw5L&_nc_ht=scontent-ort2-1.xx&oh=92c9e6df4d124217232e503a86c1733c&oe=61DE4C9E"
-            ]
+    artist_name = ["Daniel Kaiya", "The Flywheels", "The Grady Girls", "Northside Stringband",
+                   "Bob Keefe and the Surf Renegades"]
+    hometown = ["Ithaca, NY", "Ithaca, NY", "Ithaca, NY", "Ithaca, NY", "Ithaca, NY"]
+    about = [
+        "I'm surrendering my expectations to the dance of it, the ride of the vibes, the will to live deeply from within, guided by true emotion, in devotion to the Earth and the Birth of possibility just beyond the edge of what I see.",
+        "Bluegrass with grit in the southern Finger Lakes region of New York.",
+        "Toe tapping, heart lifting, subtle and smiling, The Grady Girls breathe new life into timeless Irish dance tunes!",
+        "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
+        "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
+    ]
+    photo_url = [
+        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=EUWBrEuL1McAX_o_1zP&_nc_ht=scontent-ort2-1.xx&oh=00_AT8sTXdQH_yV4u2ZAg2VMIPoPtV2NTAFv8NCVFkbTRfsRQ&oe=61DDD18D",
+        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=Bp2tdTNE7QMAX-2iBz2&_nc_ht=scontent-ort2-1.xx&oh=00_AT-YKCOYNAEUE4jG5fEpNUCYa4tjIVkZeTxo-SQ4MSS5HQ&oe=61DDC7AD",
+        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=AfpOtdFw0EgAX_90uSn&_nc_ht=scontent-ort2-1.xx&oh=00_AT-KVjP79uL5c4ttlVzENO_CPjkKmphaIsl7HzqSU37p6A&oe=61DCDE1E",
+        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=5mWWsfY04uIAX9JB8W1&_nc_ht=scontent-ort2-1.xx&oh=00_AT-kFGZxrox6po3TrRQyTqLNoj0i0MNR7Bx2qnItyz_r7w&oe=61DD18E9",
+        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/39010673_1883989948570675_300502416271343616_n.jpg?_nc_cat=106&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=d7CJYm37Ih0AX9ANw5L&_nc_ht=scontent-ort2-1.xx&oh=92c9e6df4d124217232e503a86c1733c&oe=61DE4C9E"
+    ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
-               "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
-                "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
-                 "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ",
-                 "https://open.spotify.com/artist/6qqNVTkY8uBg9cP3Jd7DAH"
-            ]
+                   "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
+                   "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
+                   "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ",
+                   "https://open.spotify.com/artist/6qqNVTkY8uBg9cP3Jd7DAH"
+                   ]
     instagram_url = ["https://www.instagram.com/bts.bighitofficial/?hl=en",
                      "https://www.instagram.com/taylorswift/",
                      "https://www.instagram.com/champagnepapi/",
                      "https://www.instagram.com/theweeknd/",
                      "https://www.instagram.com/billieeilish/?hl=en"
-            ]
+                     ]
     website_url = ["https://wildflowerfire.com/",
-                 "https://flywheels.bandcamp.com/",
-                 "https://soundcloud.com/the-grady-girls",
-                 "https://www.deborahjustice.org/northside-stringband",
-                "https://www.surf-renegades.com/"
-            ]
+                   "https://flywheels.bandcamp.com/",
+                   "https://soundcloud.com/the-grady-girls",
+                   "https://www.deborahjustice.org/northside-stringband",
+                   "https://www.surf-renegades.com/"
+                   ]
     youtube_url = ["https://www.youtube.com/user/KaiyaFuson",
-               "https://www.youtube.com/c/TaylorSwift",
-                "https://www.youtube.com/user/DrakeOfficial",
-                "https://www.youtube.com/channel/UC0WP5P-ufpRfjbNrmOWwLBQ",
-                "https://www.youtube.com/channel/UCnqVyeQgIytLWiv6kmyA1gw"
-            ]
+                   "https://www.youtube.com/c/TaylorSwift",
+                   "https://www.youtube.com/user/DrakeOfficial",
+                   "https://www.youtube.com/channel/UC0WP5P-ufpRfjbNrmOWwLBQ",
+                   "https://www.youtube.com/channel/UCnqVyeQgIytLWiv6kmyA1gw"
+                   ]
     facebook_url = ["https://www.facebook.com/bangtan.official",
-                "https://www.facebook.com/FlywheelsBluegrass/",
-                "https://www.facebook.com/thegradygirls/",
-                "https://www.facebook.com/Northside-Stringband-536218100207433/",
-                "https://www.facebook.com/BobKeefeSurf/"
-           ]
+                    "https://www.facebook.com/FlywheelsBluegrass/",
+                    "https://www.facebook.com/thegradygirls/",
+                    "https://www.facebook.com/Northside-Stringband-536218100207433/",
+                    "https://www.facebook.com/BobKeefeSurf/"
+                    ]
     more_url = ["https://www.tiktok.com/@bts_official_bighit?lang=en",
                 "https://music.apple.com/us/artist/taylor-swift/159260351",
                 "https://en.wikipedia.org/wiki/Drake_(musician)"]
-    #Add artists
+    # Add artists
     for i in range(5):
-        artist = Artist(name=artist_name[i],hometown=hometown[i], about=about[i],photo=photo_url[i],
+        artist = Artist(name=artist_name[i], hometown=hometown[i], about=about[i], photo=photo_url[i],
                         spotify=spotify_url[i], instagram=instagram_url[i],
                         website=website_url[i], youtube=youtube_url[i], facebook=facebook_url[i])
         db.session.add(artist)
         db.session.commit()
 
-    #Add eventToArtists
+    # Add eventToArtists
     for i in range(5):
         artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
         porch = db.session.query(Porch).filter_by(address=porches[i]).first()
-        time = datetime(2019, 9, 22, random.randint(1,12))
+        time = datetime(2019, 9, 22, random.randint(1, 12))
         event = ArtistToPorch(time=time, artist_id=artist.id, porch_id=porch.id)
         db.session.add(event)
         db.session.commit()
 
-    #Add genresToArtists
+    # Add genresToArtists
     genres_from_db = db.session.query(Genre).all()
     for i in range(5):
         num = random.randint(1, 6)
@@ -476,10 +560,9 @@ def add_five_artist():
             genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=randGenre[i].id)
             db.session.add(genreToArtist)
             db.session.commit()
-    #Add 'more' urls
+    # Add 'more' urls
     for i in range(3):
         artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
         artist.more = more_url[i]
         db.session.commit()
     return jsonify({"status": True})
-
