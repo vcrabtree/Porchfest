@@ -92,10 +92,7 @@ class Artist(db.Model):
     photo = db.Column(db.String(1022))
     website = db.Column(db.String(128))
     spotify = db.Column(db.String(128))
-    youtube = db.Column(db.String(128))
     facebook = db.Column(db.String(128))
-    instagram = db.Column(db.String(128))
-    more = db.Column(db.String(128))
     url_slug = db.Column(db.String(128), index=True, unique=True)
 
     # content = db.Column(db.String(128), unique=True)
@@ -109,10 +106,7 @@ class Artist(db.Model):
             'photo': self.photo,
             'website': self.website,
             'spotify': self.spotify,
-            'youtube': self.youtube,
             'facebook': self.facebook,
-            'instagram': self.instagram,
-            'more': self.more,
             'url_slug': self.url_slug
         }
         artist_events = []

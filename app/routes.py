@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 
 import jwt
@@ -17,7 +18,6 @@ from flask_jwt_extended import create_access_token, jwt_required, create_refresh
 
 
 @app.route("/login", methods=["POST"])
-@cross_origin()
 def login():
     auth = request.json
     if not auth or not auth.get('email') or not auth.get('password'):
@@ -47,16 +47,21 @@ def login():
         db.session.add(user)
         db.session.commit()
         return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 201
+    else:
+        return jsonify('Password or email incorrect'), 202
 
 
 @app.route('/signup', methods=['POST'])
 def signup():
     # creates a dictionary of the form data
     info = request.json
-
+    regexEmail = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    regexPassword = '^(?=\S{8,20}$)(?=.*?\d)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[^A-Za-z\s0-9])'
     # gets name, email and password
     email = info.get('email')
     password = info.get('password')
+    if not re.fullmatch(regexEmail, email) and not re.fullmatch(regexPassword, password):
+        return jsonify('Email is not valid format or password', 202)
 
     # checking for existing user
     user = User.query \
@@ -75,7 +80,13 @@ def signup():
         db.session.add(user)
         db.session.commit()
 
-        return jsonify('Successfully registered.', 201)
+        access_token = create_access_token(identity=user.id, fresh=True)
+        refresh_token = create_refresh_token(identity=user.id)
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 201
     else:
         # returns 202 if user already exists
         return jsonify('User already exists. Please Log in.', 202)
@@ -220,6 +231,17 @@ def update_user_to_artist():
         db.session.commit()
         return jsonify(u2a.favorite)
     return jsonify(None)
+
+
+@app.route('/user_profile', methods=['GET'])
+@jwt_required()
+def user_profile():
+    if get_jwt_identity() is not None:
+        identity = get_jwt_identity()
+        user = User.query.filter_by(id=identity).first()
+        if user:
+            return jsonify({"email": user.email}), 200
+
 
 @app.route('/get_user_saved_artists', methods=['GET'])
 @jwt_required()
@@ -493,36 +515,19 @@ def add_five_artist():
         "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
         "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
     ]
-    photo_url = [
-        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=EUWBrEuL1McAX_o_1zP&_nc_ht=scontent-ort2-1.xx&oh=00_AT8sTXdQH_yV4u2ZAg2VMIPoPtV2NTAFv8NCVFkbTRfsRQ&oe=61DDD18D",
-        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=Bp2tdTNE7QMAX-2iBz2&_nc_ht=scontent-ort2-1.xx&oh=00_AT-YKCOYNAEUE4jG5fEpNUCYa4tjIVkZeTxo-SQ4MSS5HQ&oe=61DDC7AD",
-        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=AfpOtdFw0EgAX_90uSn&_nc_ht=scontent-ort2-1.xx&oh=00_AT-KVjP79uL5c4ttlVzENO_CPjkKmphaIsl7HzqSU37p6A&oe=61DCDE1E",
-        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=5mWWsfY04uIAX9JB8W1&_nc_ht=scontent-ort2-1.xx&oh=00_AT-kFGZxrox6po3TrRQyTqLNoj0i0MNR7Bx2qnItyz_r7w&oe=61DD18E9",
-        "https://scontent-ort2-1.xx.fbcdn.net/v/t1.6435-9/39010673_1883989948570675_300502416271343616_n.jpg?_nc_cat=106&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=d7CJYm37Ih0AX9ANw5L&_nc_ht=scontent-ort2-1.xx&oh=92c9e6df4d124217232e503a86c1733c&oe=61DE4C9E"
-    ]
+    photo_url = ["https://image.shutterstock.com/image-vector/vector-graphic-no-thumbnail-symbol-260nw-1391095985.jpg"]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                    "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
                    "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
                    "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ",
                    "https://open.spotify.com/artist/6qqNVTkY8uBg9cP3Jd7DAH"
                    ]
-    instagram_url = ["https://www.instagram.com/bts.bighitofficial/?hl=en",
-                     "https://www.instagram.com/taylorswift/",
-                     "https://www.instagram.com/champagnepapi/",
-                     "https://www.instagram.com/theweeknd/",
-                     "https://www.instagram.com/billieeilish/?hl=en"
-                     ]
+
     website_url = ["https://wildflowerfire.com/",
                    "https://flywheels.bandcamp.com/",
                    "https://soundcloud.com/the-grady-girls",
                    "https://www.deborahjustice.org/northside-stringband",
                    "https://www.surf-renegades.com/"
-                   ]
-    youtube_url = ["https://www.youtube.com/user/KaiyaFuson",
-                   "https://www.youtube.com/c/TaylorSwift",
-                   "https://www.youtube.com/user/DrakeOfficial",
-                   "https://www.youtube.com/channel/UC0WP5P-ufpRfjbNrmOWwLBQ",
-                   "https://www.youtube.com/channel/UCnqVyeQgIytLWiv6kmyA1gw"
                    ]
     facebook_url = ["https://www.facebook.com/bangtan.official",
                     "https://www.facebook.com/FlywheelsBluegrass/",
@@ -530,14 +535,10 @@ def add_five_artist():
                     "https://www.facebook.com/Northside-Stringband-536218100207433/",
                     "https://www.facebook.com/BobKeefeSurf/"
                     ]
-    more_url = ["https://www.tiktok.com/@bts_official_bighit?lang=en",
-                "https://music.apple.com/us/artist/taylor-swift/159260351",
-                "https://en.wikipedia.org/wiki/Drake_(musician)"]
     # Add artists
     for i in range(5):
-        artist = Artist(name=artist_name[i], hometown=hometown[i], about=about[i], photo=photo_url[i],
-                        spotify=spotify_url[i], instagram=instagram_url[i],
-                        website=website_url[i], youtube=youtube_url[i], facebook=facebook_url[i])
+        artist = Artist(name=artist_name[i], hometown=hometown[i], about=about[i], photo=photo_url[0],
+                        spotify=spotify_url[i], website=website_url[i], facebook=facebook_url[i])
         db.session.add(artist)
         db.session.commit()
 
@@ -560,9 +561,4 @@ def add_five_artist():
             genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=randGenre[i].id)
             db.session.add(genreToArtist)
             db.session.commit()
-    # Add 'more' urls
-    for i in range(3):
-        artist = db.session.query(Artist).filter_by(name=artist_name[i]).first()
-        artist.more = more_url[i]
-        db.session.commit()
     return jsonify({"status": True})
