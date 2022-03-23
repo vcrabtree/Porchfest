@@ -515,7 +515,12 @@ def add_five_artist():
         "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
         "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
     ]
-    photo_url = ["https://image.shutterstock.com/image-vector/vector-graphic-no-thumbnail-symbol-260nw-1391095985.jpg"]
+    photo_url = ["https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=SgegyjXIak8AX8fss7R&_nc_ht=scontent-lga3-2.xx&oh=00_AT80IvRBVR2OhmH3uiVUQcSgpo8P2mYQ3fVCvETTM0q1dA&oe=6260560D",
+                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=CEzpCh2VRooAX_93qx2&_nc_ht=scontent-lga3-2.xx&oh=00_AT9Sx87s4sHFAZ0D1fcaJqVDc7inrhajTvptEt6_CqNbVw&oe=62604C2D",
+                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=JGIUsgEjiOgAX9EfKjg&_nc_ht=scontent-lga3-2.xx&oh=00_AT_qn8DzS0ECQFnoNVqmMcDkIK_b8oXwLT0KY7dITK5NQQ&oe=625F629E",
+                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=KGp7nIhM4RcAX8OKGKq&_nc_ht=scontent-lga3-2.xx&oh=00_AT8UUbp33tFZZ8zCIUDjnFcwQtZnQOz009zMqDVEXs2lSQ&oe=625F9D69",
+                 "https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-6/273648015_464306975152132_8471843295876990111_n.jpg?_nc_cat=104&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=tWRghIcVfwIAX-cdLoO&_nc_ht=scontent-lga3-2.xx&oh=00_AT-ThCPRzO5zFhFjfRr90M7nmXIc07ieXfghLvfDWcEaTA&oe=623F8C65"
+                 ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                    "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
                    "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
@@ -529,7 +534,7 @@ def add_five_artist():
                    "https://www.deborahjustice.org/northside-stringband",
                    "https://www.surf-renegades.com/"
                    ]
-    facebook_url = ["https://www.facebook.com/bangtan.official",
+    facebook_url = ["https://www.facebook.com/kaiyamusic/",
                     "https://www.facebook.com/FlywheelsBluegrass/",
                     "https://www.facebook.com/thegradygirls/",
                     "https://www.facebook.com/Northside-Stringband-536218100207433/",
@@ -537,7 +542,7 @@ def add_five_artist():
                     ]
     # Add artists
     for i in range(5):
-        artist = Artist(name=artist_name[i], hometown=hometown[i], about=about[i], photo=photo_url[0],
+        artist = Artist(name=artist_name[i], hometown=hometown[i], about=about[i], photo=photo_url[i],
                         spotify=spotify_url[i], website=website_url[i], facebook=facebook_url[i])
         db.session.add(artist)
         db.session.commit()
