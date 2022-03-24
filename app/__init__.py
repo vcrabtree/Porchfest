@@ -30,6 +30,7 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 
 jwt = JWTManager(app)
 
+
 # ading a comment, hope this works
 # Initialize the extension
 # GoogleMaps(app)
@@ -39,9 +40,9 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     # ...
 
-    #app.api was not working while in here
+    # app.api was not working while in here
+
 
 # ...
 
-from app import routes, models, errors
-
+from app import routes, artist_routes, user_routes, log_reg_routes, models, errors

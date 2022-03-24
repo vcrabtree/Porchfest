@@ -1,108 +1,10 @@
-import os
-import re
-import uuid
-
-import jwt
 import pandas as pd
-from flask import flash, redirect, url_for, request, render_template
+from flask import flash, redirect, url_for, request
 from flask import jsonify
-from flask_cors import cross_origin
-from flask_login import login_user, logout_user, current_user
-from werkzeug.urls import url_parse
-from flask_login import login_required
-from app import db, create_app
+
 from app import app
 from app.forms import *
 from app.models import *
-from flask_jwt_extended import create_access_token, jwt_required, create_refresh_token, get_jwt_identity
-
-
-@app.route("/login", methods=["POST"])
-def login():
-    auth = request.json
-    if not auth or not auth.get('email') or not auth.get('password'):
-        # returns 401 if any email or / and password is missing
-        return jsonify(
-            'Could not verify',
-            401,
-            {'WWW-Authenticate': 'Basic realm ="Login required !!"'}
-        )
-    user = User.query \
-        .filter_by(email=auth.get('email')) \
-        .first()
-    if not user:
-        # returns 401 if user does not exist
-        return jsonify(
-            'Could not verify',
-            401,
-            {'WWW-Authenticate': 'Basic realm ="User does not exist !!"'}
-        )
-
-    if check_password_hash(user.password_hash, auth.get('password')):
-        # generates the JWT Token
-        access_token = create_access_token(identity=user.id, fresh=True)
-        refresh_token = create_refresh_token(identity=user.id)
-        user.access_token = access_token
-        user.refresh_token = refresh_token
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 201
-    else:
-        return jsonify('Password or email incorrect'), 202
-
-
-@app.route('/signup', methods=['POST'])
-def signup():
-    # creates a dictionary of the form data
-    info = request.json
-    regexEmail = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    regexPassword = '^(?=\S{8,20}$)(?=.*?\d)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[^A-Za-z\s0-9])'
-    # gets name, email and password
-    email = info.get('email')
-    password = info.get('password')
-    if not re.fullmatch(regexEmail, email) and not re.fullmatch(regexPassword, password):
-        return jsonify('Email is not valid format or password', 202)
-
-    # checking for existing user
-    user = User.query \
-        .filter_by(email=email) \
-        .first()
-    if not user:
-        username = str(email).split('@')
-        # database ORM object
-        user = User(
-            username=username[0],
-            email=email,
-            password_hash=generate_password_hash(password)
-        )
-        # insert user
-        print("User created")
-        db.session.add(user)
-        db.session.commit()
-
-        access_token = create_access_token(identity=user.id, fresh=True)
-        refresh_token = create_refresh_token(identity=user.id)
-        user.access_token = access_token
-        user.refresh_token = refresh_token
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({'access_token': access_token, 'refresh_token': refresh_token}), 201
-    else:
-        # returns 202 if user already exists
-        return jsonify('User already exists. Please Log in.', 202)
-
-
-# refresh tokens to access this route.
-@app.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True)
-def refresh():
-    identity = get_jwt_identity()
-    access_token = create_access_token(identity=identity)
-    user = User.query.filter_by(id=identity).first()
-    user.access_token = access_token
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(access_token=access_token)
 
 
 @app.route('/')
@@ -112,76 +14,6 @@ def index():
     for artist in all_artists:
         artists_list.append(artist.to_dict())
     return jsonify({"status": True})
-    # return jsonify(artists_list)
-    # return jsonify({ "name": "Post Malone", "id": 7297, "hometown": "Grapevine, TX", "about": "Malone was born on July 4, 1995 in Syracuse, New York and moved to Grapevine, Texas at the age of 10. He started playing guitar at the age of 14 because of popular video game Guitar Hero . He later auditioned for band Crowd the Empire in 2010 but was rejected after his guitar string broke during the audition.", "photo": "https://i.scdn.co/image/93fec27f9aac86526b9010e882037afbda4e3d5f", "twitter": "https://twitter.com/postmalone", "spotify": "https://open.spotify.com/artist/246dkjvS1zLTtiykXe5h60", "instagram": "https://www.instagram.com/postmalone/", "merch": "https://shop.postmalone.com" })
-
-
-@app.route('/artist/<string:slug>', methods=['GET', 'POST'])
-def get_slug_artist(slug):
-    info = request.json
-    user = None
-    if info is not None:
-        user = User.query.filter_by(access_token=info.get('access_token')).first()
-    artist_data = Artist.query.filter_by(url_slug=slug).first_or_404()
-    if user:
-        favoritedArtist = UserToArtist.query.filter(UserToArtist.artist_id == artist_data.id,
-                                                    UserToArtist.user_id == user.id).first()
-        if favoritedArtist is not None:
-            result = {"artist": artist_data.to_dict()}
-            result['liked'] = favoritedArtist.favorite
-            return result
-    result = {"artist": artist_data.to_dict()}
-    return jsonify(result)
-
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
-    # return jsonify({"status": True})
-    return render_template('register.html', title='Register', form=form)
-
-
-@app.route('/artists', methods=['GET', 'POST'])
-def artists():
-    sort_type = request.json['type']
-    if sort_type == 'alphabetical':
-        all_artists = Artist.query.order_by(Artist.name.asc()).all()
-        artists_list = []
-        for artist in all_artists:
-            artists_list.append(artist.to_dict())
-        return jsonify(artists_list)
-    else:
-        genre_artist_results = []
-        all_genres = Genre.query.order_by(Genre.name.asc()).all()
-        all_artists = Artist.query.order_by(Artist.name.asc()).all()
-        count = 0
-        for genre in all_genres:
-            genre_artists = {genre.name: [], "slug": genre.url_slug}
-            artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre.id).all()
-            for artist_to_genre in artist_to_genre_info:
-                for artist in all_artists:
-                    if artist.id == artist_to_genre.artist_id:
-                        if count < 3:
-                            genre_artists[genre.name].append(artist.to_dict())
-                            count += 1
-            count = 0
-            genre_artist_results.append(genre_artists)
-        return jsonify(genre_artist_results)
 
 
 @app.route('/genres')
@@ -191,72 +23,6 @@ def genres():
     for genre in all_genres:
         genre_list.append(genre.to_dict())
     return jsonify(genre_list)
-
-
-@app.route('/genre/<string:slug>', methods=['GET'])
-def get_slug_genre(slug):
-    genre_artist_results = []
-    genre_data = Genre.query.filter_by(url_slug=slug).first_or_404()
-    all_artists = Artist.query.order_by(Artist.name.asc()).all()
-    genre_artists = {genre_data.name: []}
-    artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre_data.id).all()
-    for artist_to_genre in artist_to_genre_info:
-        for artist in all_artists:
-            if artist.id == artist_to_genre.artist_id:
-                genre_artists[genre_data.name].append(artist.to_dict())
-    genre_artist_results.append(genre_artists)
-    return jsonify(genre_artist_results)
-
-
-@app.route('/update_user_to_artist', methods=['GET', 'POST'])
-@jwt_required()
-def update_user_to_artist():
-    info = request.json
-    artist_id = info.get('artist_id')
-    if get_jwt_identity() is not None:
-        u2a = UserToArtist.query.filter_by(user_id=get_jwt_identity(), artist_id=artist_id).first()
-        if u2a is None:
-            u2a = UserToArtist(
-                user_id=get_jwt_identity(),
-                artist_id=artist_id,
-                favorite=True
-            )
-            db.session.add(u2a)
-            db.session.commit()
-        elif not u2a.favorite:
-            u2a.favorite = True
-        else:
-            u2a.favorite = False
-        db.session.add(u2a)
-        db.session.commit()
-        return jsonify(u2a.favorite)
-    return jsonify(None)
-
-
-@app.route('/user_profile', methods=['GET'])
-@jwt_required()
-def user_profile():
-    if get_jwt_identity() is not None:
-        identity = get_jwt_identity()
-        user = User.query.filter_by(id=identity).first()
-        if user:
-            return jsonify({"email": user.email}), 200
-
-
-@app.route('/get_user_saved_artists', methods=['GET'])
-@jwt_required()
-def get_saved_artists():
-    u2artists = UserToArtist.query.filter_by(user_id=get_jwt_identity(), favorite=True).all()
-    fav_artists = []
-    if u2artists is not None:
-        for artist in u2artists:
-            fav_artists.append(Artist.query.filter_by(id=artist.artist_id).first().to_dict())
-        return jsonify(fav_artists)
-    else:
-        return None
-
-
-# def get_user_favorite_artists:
 
 
 @app.route('/schedule')
@@ -515,12 +281,13 @@ def add_five_artist():
         "Northside neighbors, Laura (fiddle/guitar), Deb (guitar/banjo), Marc Faris (guitar/banjo) and Scott (bass) enjoy playing Southern old time music together and with friends.",
         "The Surf Renegades are the only authentic surf band in Central New York. Their repertoire includes standard surf tunes by the Ventures, Dick Dale (and other So. Cal. surf bands) and surf originals by Bob Keefe."
     ]
-    photo_url = ["https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=SgegyjXIak8AX8fss7R&_nc_ht=scontent-lga3-2.xx&oh=00_AT80IvRBVR2OhmH3uiVUQcSgpo8P2mYQ3fVCvETTM0q1dA&oe=6260560D",
-                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=CEzpCh2VRooAX_93qx2&_nc_ht=scontent-lga3-2.xx&oh=00_AT9Sx87s4sHFAZ0D1fcaJqVDc7inrhajTvptEt6_CqNbVw&oe=62604C2D",
-                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=JGIUsgEjiOgAX9EfKjg&_nc_ht=scontent-lga3-2.xx&oh=00_AT_qn8DzS0ECQFnoNVqmMcDkIK_b8oXwLT0KY7dITK5NQQ&oe=625F629E",
-                 "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=KGp7nIhM4RcAX8OKGKq&_nc_ht=scontent-lga3-2.xx&oh=00_AT8UUbp33tFZZ8zCIUDjnFcwQtZnQOz009zMqDVEXs2lSQ&oe=625F9D69",
-                 "https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-6/273648015_464306975152132_8471843295876990111_n.jpg?_nc_cat=104&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=tWRghIcVfwIAX-cdLoO&_nc_ht=scontent-lga3-2.xx&oh=00_AT-ThCPRzO5zFhFjfRr90M7nmXIc07ieXfghLvfDWcEaTA&oe=623F8C65"
-                 ]
+    photo_url = [
+        "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/55525887_2096958433757908_600752795271823360_n.jpg?_nc_cat=110&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=SgegyjXIak8AX8fss7R&_nc_ht=scontent-lga3-2.xx&oh=00_AT80IvRBVR2OhmH3uiVUQcSgpo8P2mYQ3fVCvETTM0q1dA&oe=6260560D",
+        "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=CEzpCh2VRooAX_93qx2&_nc_ht=scontent-lga3-2.xx&oh=00_AT9Sx87s4sHFAZ0D1fcaJqVDc7inrhajTvptEt6_CqNbVw&oe=62604C2D",
+        "https://scontent-lga3-2.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=JGIUsgEjiOgAX9EfKjg&_nc_ht=scontent-lga3-2.xx&oh=00_AT_qn8DzS0ECQFnoNVqmMcDkIK_b8oXwLT0KY7dITK5NQQ&oe=625F629E",
+        "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=KGp7nIhM4RcAX8OKGKq&_nc_ht=scontent-lga3-2.xx&oh=00_AT8UUbp33tFZZ8zCIUDjnFcwQtZnQOz009zMqDVEXs2lSQ&oe=625F9D69",
+        "https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-6/273648015_464306975152132_8471843295876990111_n.jpg?_nc_cat=104&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=tWRghIcVfwIAX-cdLoO&_nc_ht=scontent-lga3-2.xx&oh=00_AT-ThCPRzO5zFhFjfRr90M7nmXIc07ieXfghLvfDWcEaTA&oe=623F8C65"
+    ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                    "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
                    "https://open.spotify.com/artist/3TVXtAsR1Inumwj472S9r4",
