@@ -32,7 +32,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
     def to_dict(self, include_email=False):
         data = {
             'id': self.id,
@@ -156,13 +155,15 @@ class Artist(db.Model):
 class Porch(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     address = db.Column(db.String(64), index=True)
+    longitude = db.Column(db.Float, index=True)
+    latitude = db.Column(db.Float, index=True)
 
-    # events = db.relationship('Event', backref='porch', lazy='dynamic')
-
-    def to_dict(self, simplified=True):
+    def to_dict(self):
         data = {
             'id': self.id,
-            'address': self.address,  # TODO add added column to database
+            'address': self.address,
+            'latitude': self.latitude,
+            'longitude': self.longitude
         }
         return data
 
