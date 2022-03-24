@@ -36,7 +36,6 @@ class User(UserMixin, db.Model):
         data = {
             'id': self.id,
             'username': self.username,
-            # 'last_seen': self.last_seen.isoformat() + 'Z',
         }
 
         if include_email:
@@ -94,8 +93,6 @@ class Artist(db.Model):
     facebook = db.Column(db.String(128))
     url_slug = db.Column(db.String(128), index=True, unique=True)
 
-    # content = db.Column(db.String(128), unique=True)
-
     def to_dict(self):
         data = {
             'name': self.name,
@@ -114,11 +111,6 @@ class Artist(db.Model):
         for event in events:
             artist_events.append(event.to_dict())
         data['events'] = artist_events
-
-        # genres = ["Rock", "Musical theatre", "Soul music", "Pop music", "Folk music", "Blues", "Electronic "
-        #                 "dance music","Jazz", "Country music", "Punk rock"]
-        # num = random.randint(1,6)
-        # data['genre'] = random.sample(genres, num)
         artist_genres = []
         genres = Genre.query.join(ArtistToGenre) \
             .filter(ArtistToGenre.artist_id == self.id)
@@ -132,11 +124,11 @@ class Artist(db.Model):
         self.slug_artist()
 
     def slug_artist(self):
-        '''
+        """
         Takes an artist, generates a url_slug and commits to db
         :param artist: an Artist object from the Artist table
         :return: None (but commits to Artist.url_slug)
-        '''
+        """
         slug_base = slugify(self.name)
 
         # ensure the slug is unique
@@ -206,11 +198,11 @@ class Genre(db.Model):
         self.slug_genre()
 
     def slug_genre(self):
-        '''
+        """
         Takes a genre, generates a url_slug and commits to db
         :param genre: a genre object from the Genre table
         :return: None (but commits to Genre.url_slug)
-        '''
+        """
         slug_base = slugify(self.name)
 
         # ensure the slug is unique

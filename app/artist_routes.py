@@ -25,7 +25,6 @@ def get_slug_artist(slug):
 @app.route('/artists', methods=['GET', 'POST'])
 def artists():
     sort_type = request.json['type']
-    print(sort_type)
     if sort_type == 'alphabetical':
         all_artists = Artist.query.order_by(Artist.name.asc()).all()
         artists_list = []

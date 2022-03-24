@@ -31,7 +31,7 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
 
-# ading a comment, hope this works
+# adding a comment, hope this works
 # Initialize the extension
 # GoogleMaps(app)
 

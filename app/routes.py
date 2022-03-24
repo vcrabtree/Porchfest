@@ -99,21 +99,6 @@ def search():
     return jsonify({"artists": artist_search_results, "genres": genre_search_results})
 
 
-@app.route('/location')
-def location():
-    return jsonify({"map": "TODO"})
-
-
-@app.route('/plan')
-def plan():
-    return jsonify({"plan": "TODO"})
-
-
-@app.route('/about')
-def about():
-    return jsonify({"about": "TODO"})
-
-
 @app.route('/newArtist', methods=['GET', 'POST'])
 def newArtist():
     form = CreateArtistForm()
