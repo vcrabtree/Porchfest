@@ -17,11 +17,11 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     created = db.Column(db.DateTime, default=datetime.utcnow)
     access_token = db.Column(db.String(512), index=True, unique=True)
     refresh_token = db.Column(db.String(512), index=True, unique=True)
-    token_expiration = db.Column(db.DateTime)
+    geoTrackUser = db.Column(db.Boolean, default=False)
+
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
         data = {
             'id': self.id,
             'username': self.username,
+            'geoTrackingUser': self.geoTrackUser,
         }
 
         if include_email:
