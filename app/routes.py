@@ -34,6 +34,15 @@ def schedule():
     return jsonify(events_list)
 
 
+@app.route('/porch')
+def porch():
+    all_porches = ArtistToPorch.query.order_by(ArtistToPorch.time.asc()).all()
+    porch_list = []
+    for porches in all_porches:
+        porch_list.append(porches.to_dict())
+    return jsonify(porch_list)
+
+
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     search_input = request.json['entry']
