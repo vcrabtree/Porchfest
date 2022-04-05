@@ -40,11 +40,10 @@ def signup():
     info = request.json
     # regexEmail and regPassword to check if the email and password are in the correct format
     regexEmail = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    regexPassword = r'^(?=\S{8,20}$)(?=.*?\d)(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[^A-Za-z\s0-9])'
     # gets name, email and password
     email = info.get('email')
     password = info.get('password')
-    if not re.fullmatch(regexEmail, email) and not re.fullmatch(regexPassword, password):
+    if not re.fullmatch(regexEmail, email) and len(password) < 5:
         return jsonify('Email or password is not in a valid format', 202)
 
     # checking for existing user

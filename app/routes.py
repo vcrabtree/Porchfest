@@ -280,7 +280,7 @@ def add_five_artist():
         "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/60347829_404865583446217_7485028511070027776_n.jpg?_nc_cat=100&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=CEzpCh2VRooAX_93qx2&_nc_ht=scontent-lga3-2.xx&oh=00_AT9Sx87s4sHFAZ0D1fcaJqVDc7inrhajTvptEt6_CqNbVw&oe=62604C2D",
         "https://scontent-lga3-2.xx.fbcdn.net/v/t1.18169-9/29542062_10155319538882765_4416304449885024713_n.jpg?_nc_cat=108&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=JGIUsgEjiOgAX9EfKjg&_nc_ht=scontent-lga3-2.xx&oh=00_AT_qn8DzS0ECQFnoNVqmMcDkIK_b8oXwLT0KY7dITK5NQQ&oe=625F629E",
         "https://scontent-lga3-2.xx.fbcdn.net/v/t1.6435-9/51349617_536239003538676_5810532190991155200_n.jpg?_nc_cat=109&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=KGp7nIhM4RcAX8OKGKq&_nc_ht=scontent-lga3-2.xx&oh=00_AT8UUbp33tFZZ8zCIUDjnFcwQtZnQOz009zMqDVEXs2lSQ&oe=625F9D69",
-        "https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-6/273648015_464306975152132_8471843295876990111_n.jpg?_nc_cat=104&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=tWRghIcVfwIAX-cdLoO&_nc_ht=scontent-lga3-2.xx&oh=00_AT-ThCPRzO5zFhFjfRr90M7nmXIc07ieXfghLvfDWcEaTA&oe=623F8C65"
+        "https://www.surf-renegades.com/s/cc_images/teaserbox_2435443.jpg?t=1559514607"
     ]
     spotify_url = ["https://open.spotify.com/artist/3Nrfpe0tUJi4K4DXYWgMUX",
                    "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
