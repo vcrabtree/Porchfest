@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import flash, redirect, url_for, request
 from flask import jsonify
-
+import geocoder
 from app import app
 from app.forms import *
 from app.models import *
@@ -150,7 +150,8 @@ def newPorch():
         if v is not None:
             flash('Porch already exists')
         else:
-            w = Porch(address=form.address.data)
+            g = geocoder.osm(form.address.data + " Ithaca, NY")
+            w = Porch(address=form.address.data, latitude=g.latlng[0], longitude=g.latlng[1])
             flash('New Porch Created!')
             db.session.add(w)
             db.session.commit()
@@ -203,7 +204,8 @@ def populate_db():
     # Add porches
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
-        porch = Porch(address=porches[i])
+        g = geocoder.osm(porches[i] + " Ithaca, NY")
+        porch = Porch(address=porches[i], latitude=g.latlng[0],longitude=g.latlng[1])
         db.session.add(porch)
         db.session.commit()
     # Add artists
@@ -253,7 +255,8 @@ def add_five_artist():
 
     porches = ['105 Farm St', '106 2nd St', '130 Linn St', '202 E Falls St', '204 E Yates St']
     for i in range(5):
-        porch = Porch(address=porches[i])
+        g = geocoder.osm(porches[i] + " Ithaca, NY")
+        porch = Porch(address=porches[i], latitude=g.latlng[0],longitude=g.latlng[1])
         db.session.add(porch)
         db.session.commit()
 
