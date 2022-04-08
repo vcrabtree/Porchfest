@@ -1,13 +1,15 @@
 import random
 
+from flask_jwt_extended import create_access_token
 from flask_wtf.file import FileField
 from slugify import slugify
 
-from app import db, login
+from app import db, login, jwt
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, time
 from werkzeug.security import generate_password_hash, check_password_hash
 import base64
+import jwt
 from datetime import datetime, timedelta
 import os
 
@@ -21,7 +23,6 @@ class User(UserMixin, db.Model):
     access_token = db.Column(db.String(512), index=True, unique=True)
     refresh_token = db.Column(db.String(512), index=True, unique=True)
     geoTrackUser = db.Column(db.Boolean, default=False)
-
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -42,6 +43,11 @@ class User(UserMixin, db.Model):
         if include_email:
             data['email'] = self.email
         return data
+
+    def get_reset_token(self):
+        print()
+        return jwt.encode({'reset_password': self.username, 'exp': datetime.utcnow() + timedelta(seconds=500)},
+                          "secret", algorithm="HS256")
 
 
 @login.user_loader
@@ -150,13 +156,15 @@ class Porch(db.Model):
     address = db.Column(db.String(64), index=True)
     longitude = db.Column(db.Float, index=True)
     latitude = db.Column(db.Float, index=True)
+    time = db.Column(db.DateTime)
 
     def to_dict(self):
         data = {
             'id': self.id,
             'address': self.address,
             'latitude': self.latitude,
-            'longitude': self.longitude
+            'longitude': self.longitude,
+            'time': self.time
         }
         return data
 

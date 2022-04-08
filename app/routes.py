@@ -205,7 +205,7 @@ def populate_db():
     porches = df['Porch Address'].unique()
     for i in range(porches.shape[0]):
         g = geocoder.osm(porches[i] + " Ithaca, NY")
-        porch = Porch(address=porches[i], latitude=g.latlng[0],longitude=g.latlng[1])
+        porch = Porch(address=porches[i], latitude=g.latlng[0], longitude=g.latlng[1])
         db.session.add(porch)
         db.session.commit()
     # Add artists
@@ -256,7 +256,7 @@ def add_five_artist():
     porches = ['105 Farm St', '106 2nd St', '130 Linn St', '202 E Falls St', '204 E Yates St']
     for i in range(5):
         g = geocoder.osm(porches[i] + " Ithaca, NY")
-        porch = Porch(address=porches[i], latitude=g.latlng[0],longitude=g.latlng[1])
+        porch = Porch(address=porches[i], latitude=g.latlng[0], longitude=g.latlng[1])
         db.session.add(porch)
         db.session.commit()
 
@@ -330,4 +330,58 @@ def add_five_artist():
             genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=randGenre[i].id)
             db.session.add(genreToArtist)
             db.session.commit()
+    return jsonify({"status": True})
+
+
+@app.route('/add_all_artists_csv')
+def add_csv():
+    # Clear the current tables of data
+    meta = db.metadata
+    for table in reversed(meta.sorted_tables):
+        print('Clear table {}'.format(table))
+        db.session.execute(table.delete())
+    db.session.commit()
+
+    df = pd.read_csv('Trumansburg_Porchfest_Registration.csv').fillna("")
+
+    for i in range(0, len(df)):
+        if df.iloc[i, 1] != '':
+            # Add artist
+            artist = Artist(name=df.iloc[i, 1], hometown="Trumansburg",
+                            about="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
+                            photo=df.iloc[i, 4], spotify=df.iloc[i, 6], website=df.iloc[i, 7],
+                            facebook=df.iloc[i, 5])
+            db.session.add(artist)
+            db.session.commit()
+            # Google Maps API to get lat and long?
+            # Add porch
+            # if df.iloc[i, 8]: #time
+            
+            date = datetime.strptime('11 April, 2012', '%d %B, %Y')
+            porch = Porch(address=df.iloc[i, 14], time=date.replace(hour=random.randrange(12, 17)))
+            db.session.add(porch)
+            db.session.commit()
+            # Add porch to artist
+            artistToPorch = ArtistToPorch(artist_id=artist.id, porch_id=porch.id)
+            db.session.add(artistToPorch)
+            db.session.commit()
+
+            cur_artist_genres = df.iloc[i, 16]  # List of genres
+            if cur_artist_genres != "":
+                genres_list = cur_artist_genres.split(",")
+                for genre in genres_list:
+                    genre = genre.strip().lower()
+                    genre_found = db.session.query(Genre).filter_by(name=genre).first()
+                    if genre_found:
+                        genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=genre_found.id)
+                        db.session.add(genreToArtist)
+                        db.session.commit()
+                    else:
+                        genre_not_found = Genre(name=genre)
+                        db.session.add(genre_not_found)
+                        db.session.commit()
+                        genreToArtist = ArtistToGenre(artist_id=artist.id, genre_id=genre_not_found.id)
+                        db.session.add(genreToArtist)
+                        db.session.commit()
+
     return jsonify({"status": True})

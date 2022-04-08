@@ -35,17 +35,13 @@ def artists():
         genre_artist_results = []
         all_genres = Genre.query.order_by(Genre.name.asc()).all()
         all_artists = Artist.query.order_by(Artist.name.asc()).all()
-        count = 0
         for genre in all_genres:
             genre_artists = {"genre_slug": genre.url_slug, "artists": [], "genre": genre.name}
             artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre.id).all()
             for artist_to_genre in artist_to_genre_info:
                 for artist in all_artists:
                     if artist.id == artist_to_genre.artist_id:
-                        if count < 3:
-                            genre_artists["artists"].append(artist.to_dict())
-                            count += 1
-            count = 0
+                        genre_artists["artists"].append(artist.to_dict())
             genre_artist_results.append(genre_artists)
 
         return jsonify(genre_artist_results)
