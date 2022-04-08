@@ -356,9 +356,12 @@ def add_csv():
             # Google Maps API to get lat and long?
             # Add porch
             # if df.iloc[i, 8]: #time
-            
+
             date = datetime.strptime('11 April, 2012', '%d %B, %Y')
-            porch = Porch(address=df.iloc[i, 14], time=date.replace(hour=random.randrange(12, 17)))
+            addr = df.iloc[i, 14]
+            geoLocation = geocoder.osm(addr + " Trumansburg, NY")
+            porch = Porch(address=addr, time=date.replace(hour=random.randrange(12, 17)), latitude=geoLocation.current_result.geometry['coordinates'][1], longitude=geoLocation.current_result.geometry['coordinates'][0])
+            # porch = Porch(address=df.iloc[i, 14], time=date.replace(hour=random.randrange(12, 17)))
             db.session.add(porch)
             db.session.commit()
             # Add porch to artist
