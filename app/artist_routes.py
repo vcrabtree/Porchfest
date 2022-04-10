@@ -36,7 +36,7 @@ def artists():
         all_genres = Genre.query.order_by(Genre.name.asc()).all()
         all_artists = Artist.query.order_by(Artist.name.asc()).all()
         for genre in all_genres:
-            genre_artists = {"genre_slug": genre.url_slug, "artists": [], "genre": genre.name}
+            genre_artists = {"genre_slug": genre.url_slug, "artists": [], "genre": genre.name.capitalize()}
             artist_to_genre_info = ArtistToGenre.query.filter_by(genre_id=genre.id).all()
             for artist_to_genre in artist_to_genre_info:
                 for artist in all_artists:
