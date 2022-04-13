@@ -1,17 +1,11 @@
-import random
-
-from flask_jwt_extended import create_access_token
-from flask_wtf.file import FileField
 from slugify import slugify
 
 from app import db, login, jwt
 from flask_login import UserMixin
 from datetime import datetime, time
 from werkzeug.security import generate_password_hash, check_password_hash
-import base64
 import jwt
 from datetime import datetime, timedelta
-import os
 
 
 class User(UserMixin, db.Model):

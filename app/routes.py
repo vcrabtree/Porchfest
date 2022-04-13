@@ -1,9 +1,10 @@
+import random
+
 import pandas as pd
-from flask import flash, redirect, url_for, request
+from flask import flash, request
 from flask import jsonify
 import geocoder
 from app import app
-from app.forms import *
 from app.models import *
 
 
@@ -23,24 +24,6 @@ def genres():
     for genre in all_genres:
         genre_list.append(genre.to_dict())
     return jsonify(genre_list)
-
-
-@app.route('/schedule')
-def schedule():
-    all_events = ArtistToPorch.query.all()
-    events_list = []
-    for event in all_events:
-        events_list.append(event.to_dict())
-    return jsonify(events_list)
-
-
-@app.route('/porch')
-def porch():
-    all_porches = ArtistToPorch.query.order_by(ArtistToPorch.time.asc()).all()
-    porch_list = []
-    for porches in all_porches:
-        porch_list.append(porches.to_dict())
-    return jsonify(porch_list)
 
 
 @app.route('/search', methods=['GET', 'POST'])
@@ -107,139 +90,17 @@ def search():
 
     return jsonify({"artists": artist_search_results, "genres": genre_search_results})
 
-
-@app.route('/newArtist', methods=['GET', 'POST'])
-def newArtist():
-    form = CreateArtistForm()
-
-    if form.validate_on_submit():
-        a = Artist.query.filter_by(name=form.name.data).first()
-        if a is not None:
-            flash('Artist already exist')
-        else:
-            b = Artist(name=form.name.data, genre=form.genre.data, hometown=form.hometown.data, about=form.about.data,
-                       twitter=form.twitter_url.data, instagram=form.instagram_url.data, spotify=form.spotify_url.data)
-
-            flash('New Artist Created!')
-            db.session.add(b)
-            db.session.commit()
-
-            f = form.photo.data
-            if f:
-                extension = f.filename.split(".")[-1]
-                filename = str(b.id) + '.' + extension
-                f.save(os.path.join(
-                    app.static_folder, filename
-                ))
-            else:
-                filename = "img_avatar1.png"
-
-            c = Artist.query.filter_by(name=form.name.data).first()
-            c.photo = filename
-            db.session.commit()
-
-            return redirect(url_for('artists'))
-    return jsonify({"status": True})
-
-
-@app.route('/newPorch', methods=['GET', 'POST'])
-def newPorch():
-    form = CreatePorchForm()
-    if form.validate_on_submit():
-        v = Porch.query.filter_by(address=form.address.data).first()
-        if v is not None:
-            flash('Porch already exists')
-        else:
-            g = geocoder.osm(form.address.data + " Ithaca, NY")
-            w = Porch(address=form.address.data, latitude=g.latlng[0], longitude=g.latlng[1])
-            flash('New Porch Created!')
-            db.session.add(w)
-            db.session.commit()
-            return redirect(url_for('index'))
-    return jsonify({"status": True})
-
-
-@app.route('/newEvent', methods=['GET', 'POST'])
-def newEvent():
-    porch_list = Porch.query.all()
-    locations = [(i.id, i.address) for i in porch_list]
-    artists_list = Artist.query.all()
-    performers = [(y.id, y.name) for y in artists_list]
-    form = CreateEventForm()
-    form.porch.choices = locations
-    form.artist.choices = performers
-    if form.validate_on_submit():
-        duplicate = False
-        a = Artist.query.filter_by(id=form.artist.data).first()
-        p = Porch.query.filter_by(id=form.porch.data).first()
-        for j in performers:
-            if ArtistToPorch.query.filter_by(artist_id=j[0], porch_id=p.id, time=form.time.data).first():
-                flash('An artist is already playing this porch at this time')
-                duplicate = True
-
-        for k in locations:
-            if ArtistToPorch.query.filter_by(artist_id=a.id, porch_id=k[0], time=form.time.data).first():
-                flash('This artist is already playing at this time')
-                duplicate = True
-
-        if not duplicate:
-            x = ArtistToPorch(time=form.time.data, porch_id=form.porch.data, artist_id=form.artist.data)
-            flash('New Event Created!')
-            db.session.add(x)
-            db.session.commit()
-            return redirect(url_for('index'))
-    return jsonify({"status": True})
-
-
-@app.route('/populate_db')
-def populate_db():
-    flash("Populating database with Porchfest data")
-
-    meta = db.metadata
-    for table in reversed(meta.sorted_tables):
-        print('Clear table {}'.format(table))
-        db.session.execute(table.delete())
-    db.session.commit()
-    df = pd.read_csv('data/2019PerformerSchedule.csv', index_col=0, sep=',')
-    # Add porches
-    porches = df['Porch Address'].unique()
-    for i in range(porches.shape[0]):
-        g = geocoder.osm(porches[i] + " Ithaca, NY")
-        porch = Porch(address=porches[i], latitude=g.latlng[0], longitude=g.latlng[1])
-        db.session.add(porch)
-        db.session.commit()
-    # Add artists
-    for i in range(df.shape[0]):
-        row = df.iloc[i]
-        artist = Artist(name=row['Name'], about=row['Description'])
-        db.session.add(artist)
-        db.session.commit()
-    # Add events
-    for i in range(df.shape[0]):
-        row = df.iloc[i]
-        artist = db.session.query(Artist).filter_by(name=row['Name']).first()
-        porch = db.session.query(Porch).filter_by(address=row['Porch Address']).first()
-        timing = int(row['Assigned Timeslot'].split('-')[0])
-        if not timing == 12:
-            timing += 12
-        time = datetime(2019, 9, 22, timing)
-        event = ArtistToPorch(time=time, artist_id=artist.id, porch_id=porch.id)
-        db.session.add(event)
-        db.session.commit()
-    return jsonify({"status": True})
-
-
-@app.route('/reset_db')
-def reset_db():
-    flash("Resetting database: deleting old data and repopulating with dummy data")
-    # clear all data from all tables
-    meta = db.metadata
-    for table in reversed(meta.sorted_tables):
-        print('Clear table {}'.format(table))
-        db.session.execute(table.delete())
-    db.session.commit()
-    populate_db()
-    return jsonify({"status": True})
+# @app.route('/reset_db')
+# def reset_db():
+    # flash("Resetting database: deleting old data and repopulating with dummy data")
+    # # clear all data from all tables
+    # meta = db.metadata
+    # for table in reversed(meta.sorted_tables):
+    #     print('Clear table {}'.format(table))
+    #     db.session.execute(table.delete())
+    # db.session.commit()
+    # populate_db()
+    # return jsonify({"status": True})
 
 
 @app.route('/artist_info_all_add')
@@ -361,7 +222,6 @@ def add_csv():
             addr = df.iloc[i, 14]
             geoLocation = geocoder.osm(addr + " Trumansburg, NY")
             porch = Porch(address=addr, time=date.replace(hour=random.randrange(12, 17)), latitude=geoLocation.current_result.geometry['coordinates'][1], longitude=geoLocation.current_result.geometry['coordinates'][0])
-            # porch = Porch(address=df.iloc[i, 14], time=date.replace(hour=random.randrange(12, 17)))
             db.session.add(porch)
             db.session.commit()
             # Add porch to artist
