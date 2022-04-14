@@ -1,7 +1,7 @@
 import re
 from flask import jsonify
 from flask import redirect, url_for, request
-from flask_jwt_extended import jwt_required, create_refresh_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, create_refresh_token, get_jwt_identity, create_access_token
 from flask_login import logout_user
 from app import app
 from app.models import *
