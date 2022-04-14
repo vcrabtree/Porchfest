@@ -17,7 +17,7 @@ def get_slug_artist(slug):
                                                    UserToArtist.user_id == user.id).first()
         if favoriteArtist is not None:
             result = {"artist": artist_data.to_dict(), 'liked': favoriteArtist.favorite}
-            return result
+            return jsonify(result)
     result = {"artist": artist_data.to_dict()}
     return jsonify(result)
 
