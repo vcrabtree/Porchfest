@@ -26,6 +26,15 @@ def genres():
     return jsonify(genre_list)
 
 
+@app.route('/porch')
+def porch():
+    all_porches = ArtistToPorch.query.order_by(ArtistToPorch.time.asc()).all()
+    porch_list = []
+    for porches in all_porches:
+        porch_list.append(porches.to_dict())
+    return jsonify(porch_list)
+
+
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     search_input = request.json['entry']
@@ -90,17 +99,18 @@ def search():
 
     return jsonify({"artists": artist_search_results, "genres": genre_search_results})
 
+
 # @app.route('/reset_db')
 # def reset_db():
-    # flash("Resetting database: deleting old data and repopulating with dummy data")
-    # # clear all data from all tables
-    # meta = db.metadata
-    # for table in reversed(meta.sorted_tables):
-    #     print('Clear table {}'.format(table))
-    #     db.session.execute(table.delete())
-    # db.session.commit()
-    # populate_db()
-    # return jsonify({"status": True})
+# flash("Resetting database: deleting old data and repopulating with dummy data")
+# # clear all data from all tables
+# meta = db.metadata
+# for table in reversed(meta.sorted_tables):
+#     print('Clear table {}'.format(table))
+#     db.session.execute(table.delete())
+# db.session.commit()
+# populate_db()
+# return jsonify({"status": True})
 
 
 @app.route('/artist_info_all_add')
@@ -221,7 +231,9 @@ def add_csv():
             date = datetime.strptime('11 April, 2012', '%d %B, %Y')
             addr = df.iloc[i, 14]
             geoLocation = geocoder.osm(addr + " Trumansburg, NY")
-            porch = Porch(address=addr, time=date.replace(hour=random.randrange(12, 17)), latitude=geoLocation.current_result.geometry['coordinates'][1], longitude=geoLocation.current_result.geometry['coordinates'][0])
+            porch = Porch(address=addr, time=date.replace(hour=random.randrange(12, 17)),
+                          latitude=geoLocation.current_result.geometry['coordinates'][1],
+                          longitude=geoLocation.current_result.geometry['coordinates'][0])
             db.session.add(porch)
             db.session.commit()
             # Add porch to artist
