@@ -74,7 +74,6 @@ def generateToken(userID):
     refresh_token = create_refresh_token(identity=user.id)
     user.access_token = access_token
     user.refresh_token = refresh_token
-    db.session.add(user)
     db.session.commit()
     return jsonify({'access_token': access_token, 'refresh_token': refresh_token})
 
@@ -87,7 +86,6 @@ def refresh():
     access_token = create_access_token(identity=identity)
     user = User.query.filter_by(id=identity).first()
     user.access_token = access_token
-    db.session.add(user)
     db.session.commit()
     return jsonify(access_token=access_token)
 

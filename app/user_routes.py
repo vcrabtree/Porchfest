@@ -1,9 +1,12 @@
-from flask import jsonify
+from flask import jsonify, render_template, redirect, current_app
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from app import app
+from threading import Thread
+from app import app, mail
 from app.models import *
+import jwt
+from flask_mail import Message
+from app.models import User
 
 
 @app.route('/user_profile', methods=['GET'])
@@ -15,6 +18,7 @@ def user_profile():
         if user:
             return jsonify({"email": user.email, "trackLocation": user.geoTrackUser}), 200
     return jsonify(None)
+
 
 @app.route('/get_user_saved_artists', methods=['GET'])
 @jwt_required()
@@ -48,7 +52,6 @@ def update_user_to_artist():
             u2a.favorite = True
         else:
             u2a.favorite = False
-        db.session.add(u2a)
         db.session.commit()
         return jsonify(u2a.favorite)
     return jsonify(None)
@@ -65,7 +68,6 @@ def update_user_geo_tracking():
                 user.geoTrackUser = False
             else:
                 user.geoTrackUser = True
-            db.session.add(user)
             db.session.commit()
             return jsonify(user.geoTrackUser)
         return jsonify(None)
@@ -89,3 +91,52 @@ def delete_user():
             except:
                 print("User could not be deleted")
     return jsonify(None)
+
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+
+def send_email(subject, sender, recipients, text_body, html_body):
+    msg = Message(subject, sender=sender, recipients=recipients)
+    msg.body = text_body
+    msg.html = html_body
+    Thread(target=send_async_email,
+           args=(app, msg)).start()
+
+
+@app.route('/send_password_reset', methods=['GET', 'POST'])
+def reset_password_email():
+    info = request.json
+    email = info.get('email')
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        token = user.get_reset_token()
+        send_email("Porchfest password reset", current_app.config['MAIL_USERNAME'], [email], None,
+                   render_template('reset_email.html', route=current_app.config['EMAIL_SERVER'], user=user, token=token))
+    return jsonify("Email sent if in db", 200)
+
+
+@app.route('/password_reset/<token>', methods=['POST', 'GET'])
+def reset_password(token):
+    error = None
+    user = None
+    try:
+        username = jwt.decode(token, "secret", algorithms=["HS256"])['reset_password']
+        if username:
+            user = User.query.filter_by(username=username).first()
+    except Exception as e:
+        error = 'session token has expired, request to reset again'
+
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        if len(new_password) >= 5 and user:
+            user.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            return redirect(current_app.config['ENVIRONMENT'] + "login")
+        else:
+            error = 'Password needs to be at least 5 characters'
+
+    return render_template('reset_password.html', error=error)
