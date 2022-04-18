@@ -116,7 +116,9 @@ def reset_password_email():
         token = user.get_reset_token()
         send_email("Porchfest password reset", current_app.config['MAIL_USERNAME'], [email], None,
                    render_template('reset_email.html', route=current_app.config['EMAIL_SERVER'], user=user, token=token))
-    return jsonify("Email sent if in db", 200)
+        return jsonify("Email sent"), 200
+    else:
+        return jsonify("Email not found"), 404
 
 
 @app.route('/password_reset/<token>', methods=['POST', 'GET'])
