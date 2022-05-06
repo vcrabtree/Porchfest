@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     access_token = db.Column(db.String(512), index=True, unique=True)
     refresh_token = db.Column(db.String(512), index=True, unique=True)
     geoTrackUser = db.Column(db.Boolean, default=False)
+    blurSetting = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -32,6 +33,7 @@ class User(UserMixin, db.Model):
             'id': self.id,
             'username': self.username,
             'geoTrackingUser': self.geoTrackUser,
+            'blurSetting': self.blurSetting,
         }
 
         if include_email:

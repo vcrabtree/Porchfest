@@ -56,7 +56,8 @@ def signup():
             username=username[0],
             email=email,
             password_hash=generate_password_hash(password),
-            geoTrackUser=info.get('geo_Tracking')
+            geoTrackUser=info.get('geo_Tracking'),
+            blurSetting='true'
 
         )
         db.session.add(user)

@@ -16,7 +16,7 @@ def user_profile():
         identity = get_jwt_identity()
         user = User.query.filter_by(id=identity).first()
         if user:
-            return jsonify({"email": user.email, "trackLocation": user.geoTrackUser}), 200
+            return jsonify({"email": user.email, "trackLocation": user.geoTrackUser, "blurSetting": user.blurSetting}), 200
     return jsonify(None)
 
 
@@ -70,6 +70,22 @@ def update_user_geo_tracking():
                 user.geoTrackUser = True
             db.session.commit()
             return jsonify(user.geoTrackUser)
+        return jsonify(None)
+
+
+@app.route('/update_user_blur_setting', methods=['GET'])
+@jwt_required()
+def update_user_blur_setting():
+    if get_jwt_identity() is not None:
+        identity = get_jwt_identity()
+        user = User.query.filter_by(id=identity).first()
+        if user:
+            if user.blurSetting:
+                user.blurSetting = False
+            else:
+                user.blurSetting = True
+            db.session.commit()
+            return jsonify(user.blurSetting)
         return jsonify(None)
 
 
