@@ -10,6 +10,7 @@ from app.models import *
 
 @app.route('/')
 def index():
+    ##main route
     all_artists = Artist.query.order_by(Artist.name.asc()).all()
     artists_list = []
     for artist in all_artists:
@@ -219,19 +220,30 @@ def add_csv():
         if df.iloc[i, 1] != '':
             # Add artist
             artist = Artist(name=df.iloc[i, 1], hometown="Trumansburg",
-                            about="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
-                            photo=df.iloc[i, 4], spotify=df.iloc[i, 6], website=df.iloc[i, 7],
-                            facebook=df.iloc[i, 5])
+                            about=df.iloc[i, 2],
+                            photo=df.iloc[i, 3], spotify=df.iloc[i, 13], website=df.iloc[i, 14],
+                            facebook=df.iloc[i, 12])
             db.session.add(artist)
             db.session.commit()
             # Google Maps API to get lat and long?
             # Add porch
-            # if df.iloc[i, 8]: #time
 
-            date = datetime.strptime('11 April, 2012', '%d %B, %Y')
-            addr = df.iloc[i, 14]
+            date = datetime.strptime('11 June, 2022', '%d %B, %Y')
+            addr = df.iloc[i, 4]
             geoLocation = geocoder.osm(addr + " Trumansburg, NY")
-            porch = Porch(address=addr, time=date.replace(hour=random.randrange(12, 17)),
+            # 6,7,8,9,10 --- 12,1,2,3,4
+            timePlaying = -1
+            if df.iloc[i, 6] != '':
+                timePlaying = 12
+            elif df.iloc[i, 7] != '':
+                timePlaying = 1
+            elif df.iloc[i, 8] != '':
+                timePlaying = 2
+            elif df.iloc[i, 9] != '':
+                timePlaying = 3
+            elif df.iloc[i, 10] != '':
+                timePlaying = 4
+            porch = Porch(address=addr, time=date.replace(hour=timePlaying),
                           latitude=geoLocation.current_result.geometry['coordinates'][1],
                           longitude=geoLocation.current_result.geometry['coordinates'][0])
             db.session.add(porch)
@@ -241,7 +253,7 @@ def add_csv():
             db.session.add(artistToPorch)
             db.session.commit()
 
-            cur_artist_genres = df.iloc[i, 16]  # List of genres
+            cur_artist_genres = df.iloc[i, 5]  # List of genres
             if cur_artist_genres != "":
                 genres_list = cur_artist_genres.split(",")
                 for genre in genres_list:
