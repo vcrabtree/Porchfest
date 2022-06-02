@@ -214,7 +214,7 @@ def add_csv():
         db.session.execute(table.delete())
     db.session.commit()
 
-    df = pd.read_csv('/Users/emmettbarry/Documents/JimiLab/Porchfest/Trumansburg-Porchfest-Registration.csv').fillna("")
+    df = pd.read_csv('Trumansburg_Porchfest_Registration.csv').fillna("")
 
     for i in range(0, len(df)):
         if df.iloc[i, 1] != '':
